@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:WindowedApplication xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" applicationComplete="init();">
+	<mx:Script>
+		<![CDATA[
+			import controllers.HomeController; 
+			import core.Database;
+			
+			private function init():void
+			{
+				// initialize the TUIO object
+				TUIO.init(this, 'localhost', 3000, '', true);
+				
+				// initialize the database
+				var db:Database = Database.getInstance();
+		
+				// launch the home controller
+				var homeController:HomeController = new HomeController();
+			}
+			
+			
+		]]>
+	</mx:Script>
+	
+	<mx:ViewStack id="mainViewStack">	
+	</mx:ViewStack>
+	
+</mx:WindowedApplication>
