@@ -26,7 +26,11 @@
 			// Updates the coordinates of the active points on the gesture pad.
 			private function gesturePadUpdater(e:Event):void
 			{
-
+				for each (var touchPoint:TouchPoint in this.activeTouchPoints) {
+					// update the coordinates for active points
+					var i;
+					//touchPoint. 
+				}
 			}
 			
 			// triggered when a finger is pressed down onto the 
