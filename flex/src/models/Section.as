@@ -1,5 +1,8 @@
 package models
-{	
+{
+	import mx.automation.codec.ArrayPropertyCodec;
+	import mx.collections.ArrayCollection;
+		
 	public class Section
 	{
 		private var startIndex:int = 0;
@@ -7,6 +10,7 @@ package models
 		private var direction:int = 0;
 		private var width:int = 0;
 		private var height:int = 0;
+		private var slopes:ArrayCollection = new ArrayCollection();
 			
 		public function Section()
 		{
@@ -61,6 +65,16 @@ package models
 		public function getHeight():int
 		{
 			return this.height;
+		}
+		
+		public function setSlopes(s:ArrayCollection):void
+		{
+			this.slopes = s;
+		}
+		
+		public function getSlopes():ArrayCollection
+		{
+			return this.slopes;
 		}
 	}
 }
