@@ -10,6 +10,26 @@ package models
 		public function Path()
 		{
 		}
+		
+		public function getSections():ArrayCollection
+		{
+			return this.sections;
+		}
+		
+		public function setSections(s:ArrayCollection):void
+		{
+			this.sections = s;
+		}
+		
+		public function getPoints():ArrayCollection
+		{
+			return this.points;
+		}
+		
+		public function setPoints(p:ArrayCollection):void
+		{
+			this.points = p;
+		}
 
 	}
 }

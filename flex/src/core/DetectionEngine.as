@@ -1,5 +1,6 @@
 package core
 {
+	import models.Path;
 	import models.Section;
 	
 	import mx.collections.ArrayCollection;
@@ -34,7 +35,29 @@ package core
 		 //Compare two sections
 		 private function compareSection(base:Section, reprod:Section):int
 		 {
+		 	//TODO: Adjust weight contributing to error for each comparison
+		 	
+		 	var error:int = 0;
+		 	//TODO: are their of the sections small enough to ignore?
+		 	
+		 	
 		 	//look at direction, slopes, change in slopes, length
+		 	
+		 	
+		 	//compare slopes at each defined interval 
+		 	var baseSlopes:ArrayCollection = base.getSlopes();
+		 	var reprodSlopes:ArrayCollection = reprod.getSlopes();
+		 	
+		 	for(var i:int = 0; i < baseSlopes.length; i++ ) {
+		 		error += Math.abs(baseSlopes.getItemIndex(i) - reprodSlopes.getItemAt(i));
+		 	}
+		 	
+		 	
+		 	//TODO: This needs to be scaled relative to the entire size of each respective gesture
+		 	//e.g. section width divided by total gesture width  
+		 	error += Math.abs(base.getWidth() - reprod.getWidth());
+		 	error += Math.abs(base.getHeight() - reprod.getHeight());
+		 	
 		 	
 		 	
 		 	//return integer representing error
@@ -69,7 +92,7 @@ package core
 		}
 
 		//Split a single blob path into sections based on direction		
-		private function parsePath(points:ArrayCollection):ArrayCollection
+		private function parsePath(path:Path):ArrayCollection
 		{
 			//collection all the sections in this particular path
 			var sections:ArrayCollection = new ArrayCollection(); 
@@ -86,7 +109,7 @@ package core
 			var previousPoint:TouchPoint = null;
 			var previousDirection:int = 0;
 			
-			for each(var point:TouchPoint in points) {
+			for each(var point:TouchPoint in path.getPoints()) {
 				var currentDirection:int = 0;
 				
 				/* first define the direction from the previous point to current
@@ -128,6 +151,7 @@ package core
 					section.setEndIndex(currentPointIndex - 1);
 					section.setDirection(previousDirection);
 					
+					defineSectionSubslopes(path, section)
 					
 					sections.addItem(section);
 					
@@ -153,6 +177,35 @@ package core
 			//compute the difference between max & min values for X&Y direction
 			
 			//return X&Y distance 
+		}
+		
+		//Calculate and store the slope at 20% intervals of the section
+		private function defineSectionSubslopes(path:Path, section:Section):void
+		{
+			var slopes:ArrayCollection = new ArrayCollection();		
+			
+			var points = path.getPoints();
+			var numPoints:int = section.getEndIndex() - section.getStartIndex();
+			
+			for(var i:int = 0; i < numPoints; i += numPoints/5) {
+				var firstPoint:TouchPoint = points.getItemAt(i);
+				var secondPoint:TouchPoint = points.getItemAt(i + numPoints/5);
+				
+				var rise:Number = secondPoint.getY() - firstPoints.getY();
+				var run:Number = secondPoint.getX() - firstPoints.getX();
+				
+				if(run == 0) {
+					run = 0.001;
+				}
+				
+				var slope:Number = rise / run;  
+				
+				if(slopes.length < 5) {
+					slopes.addItem(slope);
+				}
+			}  
+			
+			section.setSlopes(slopes);
 		}
 		
 		
