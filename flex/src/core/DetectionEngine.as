@@ -1,7 +1,9 @@
 package core
 {
+	import models.Gesture;
 	import models.Path;
 	import models.Section;
+	import models.TouchPoint;
 	
 	import mx.collections.ArrayCollection;
 	
@@ -25,24 +27,59 @@ package core
 		 * to a collection of base gestures
 		 */
 		 
-		 //Compare the reproduced path to a collection of base pathes
-		 public function comparePathes()
+		 //Attempts to match a given gesture with those existing in the repository
+		 public function matchGesture(var reprod:Gesture):Gesture
 		 {
+		 	//get list of existing gestures
+		 	var storedGestures:ArrayCollection = new ArrayCollection();
+		 	
+		 	var numPaths = reprod.getPaths().length
+		 	
+		 	//first remove any gestures that don't have the same number of points
+		 	for each(var baseGesture:Gesture in storedGestures) {
+		 		if(baseGesture.getPaths().length != numPaths) {
+		 			//TODO: Remove these gestures from ones being compared
+		 		}
+		 	}
+		 	
+		 	//create a 1-to-1 mapping of the base and reproduced gesture paths
+		 	//correlatePaths();
+		 	
+		 	for each(var gesture:Gesture in storedGestures) {
+		 		//TODO: In the future, match the paths to be compared based on outcome from correlatePaths()
+		 		for(var i:int = 0; i < numPaths; i++) {
+			 		comparePaths(reprod.getPaths().getItemAt(i), gesture.getPaths().getItemAt(i));
+			 	}
+		 	}
+		 	
+		 	
+		 }
+		 
+		 //Compare the reproduced path to a collection of base pathes
+		 private function comparePaths(var reprod:Path, var base:Path)
+		 {
+		 	var reprodSections:ArrayCollection = reprod.getSections();
+		 	var baseSections:ArrayCollection = base.getSections();
+		 	
+		 	var numReprodSections:int = reprodSections.length;
+		 	 
 		 	//iterate through each section
-		 	compareSection();
+		 	for(var i:int = 0; i < numReprodSections; i++) {
+		 		compareSection(reprodSections.getItemAt(i), baseSections.getItemAt(i));
+		 	}
+		 	
 		 } 
 		 
 		 //Compare two sections
-		 private function compareSection(base:Section, reprod:Section):int
+		 private function compareSection(reprod:Section, base:Section):int
 		 {
 		 	//TODO: Adjust weight contributing to error for each comparison
-		 	
-		 	var error:int = 0;
 		 	//TODO: are their of the sections small enough to ignore?
 		 	
-		 	
-		 	//look at direction, slopes, change in slopes, length
-		 	
+		 	var error:int = 0;
+		 	 
+		 	/* look at direction, slopes, change in slopes, length
+		 	 */
 		 	
 		 	//compare slopes at each defined interval 
 		 	var baseSlopes:ArrayCollection = base.getSlopes();
@@ -58,9 +95,7 @@ package core
 		 	error += Math.abs(base.getWidth() - reprod.getWidth());
 		 	error += Math.abs(base.getHeight() - reprod.getHeight());
 		 	
-		 	
-		 	
-		 	//return integer representing error
+		 	return error;
 		 }
 		
 		/* Analysis Preparation
@@ -81,7 +116,7 @@ package core
 		{
 			smoothPath();
 			parsePath();
-			determinePathScale();
+			//determinePathScale();
 		}
 		
 		//Remove anomalies from the path
@@ -170,13 +205,31 @@ package core
 		
 		//Determine the size of the path
 		//i.e. the max X & Y deltas 
-		private function determinePathScale()
+		private function determineSectionScale(points:ArrayCollection, section:Section)
 		{
-			//accept a single path (collection of coords)
+			var firstPoint:TouchPoint = points.getItemAt(0);
 			
-			//compute the difference between max & min values for X&Y direction
+			var maxX:int = firstPoint.getX();
+			var minX:int = firstPoint.getX();
+			var maxY:int = firstPoint.getY();
+			var minY:int = firstPoint.getY();
+						
+			for each(var point:TouchPoint in points) {
+				if(point.getX() < minX) {
+					minX = point.getX()
+				} else if(point.getX() > maxX) {
+					maxX = point.getX();
+				}
+				
+				if(point.getY() < minY) {
+					minX = point.getY()
+				} else if(point.getY() > maxY) {
+					maxY = point.getY();
+				}
+			}
 			
-			//return X&Y distance 
+			section.setWidth(maxX - minX);
+			section.setHeight(maxY - minY); 
 		}
 		
 		//Calculate and store the slope at 20% intervals of the section
@@ -194,6 +247,7 @@ package core
 				var rise:Number = secondPoint.getY() - firstPoints.getY();
 				var run:Number = secondPoint.getX() - firstPoints.getX();
 				
+				//prevent divide by zero error
 				if(run == 0) {
 					run = 0.001;
 				}
@@ -208,7 +262,55 @@ package core
 			section.setSlopes(slopes);
 		}
 		
-		
+		//Pair up the paths on the reproduced gesture with those of the base gestures
+		private function correlatePaths(var reprod:Gesture, var baseCollection:ArrayCollection)
+		{
+			//TODO: Don't just take any path at random to set as origin, use left-most (for example), instead
+			
+			/* pick the starting coordinates of any path and use the relative X/Y variation
+			 * of the start coords of the other paths to match
+			 */
+			 
+			
+			//first find the relative positions for the reproduced gesture
+			var reprodPaths:ArrayCollection = reprod.getPaths();
+			
+			//stores the list of relative X/Y distances from origin point
+			var reprodX:Array = new Array();
+			var reprodY:Array = new Array();
+			
+			var reprodOriginX:int = reprodPaths.getPoints().getItemAt(0).getX();
+			var reprodOriginY:int = reprodPaths.getPoints().getItemAt(0).getY();
+			
+			for each(var path:Path in reprodPaths) {
+				reprodX.push(path.getPoints().getItemAt(0).getX() - reprodOriginX);
+				reprodY.push(path.getPoints().getItemAt(0).getY() - reprodOriginY);
+			}
+			
+			//now do this for all the base gestures
+			for each(var gesture:Gesture in baseCollection) {
+				var paths = gesture.getPaths();
+				
+				//stores the list of relative X/Y distances from origin point
+				var baseX:Array = new Array();
+				var baseY:Array = new Array();
+				
+				var baseOriginX:int = paths.getPoints().getItemAt(0).getX();
+				var baseOriginY:int = paths.getPoints().getItemAt(0).getY();
+				
+				for each(var path:Path in paths) {
+					baseX.push(path.getPoints().getItemAt(0).getX() - baseOriginX);
+					baseY.push(path.getPoints().getItemAt(0).getY() - baseOriginY);
+				}
+				
+				//TODO: compare the relative distances between reproduced and base paths
+				
+					
+			}
+			
+			
+			
+		}
 		 
 
 	}
