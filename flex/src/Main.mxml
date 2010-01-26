@@ -2,8 +2,11 @@
 <mx:WindowedApplication xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" applicationComplete="init();">
 	<mx:Script>
 		<![CDATA[
+			import database.databaseUtilities;
 			import controllers.HomeController; 
 			import core.Database;
+			
+			private var sqlLiteGesturesConn:SQLConnection=null;
 			
 			private function init():void
 			{
@@ -11,10 +14,24 @@
 				TUIO.init(this, 'localhost', 3000, '', true);
 				
 				// initialize the database
-				var db:Database = Database.getInstance();
+				sqlLiteGesturesConn = database.databaseUtilities.getInstance();
 		
 				// launch the home controller
 				var homeController:HomeController = new HomeController();
+				
+				//test Gestures DB object creation
+				trace("Test DB Gesture Object");
+				database.databaseUtilities.testGestureDBCreation();
+			}
+			
+	        private function applicationExit():void
+	        { 	
+	        	database.databaseUtilities.closeDatabase();
+			    var exitingEvent:Event = new Event(Event.EXITING, false, true); 
+			    NativeApplication.nativeApplication.dispatchEvent(exitingEvent); 
+			    if (!exitingEvent.isDefaultPrevented()) { 
+			        NativeApplication.nativeApplication.exit(); 
+			    } 
 			}
 			
 			
