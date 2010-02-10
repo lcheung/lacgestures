@@ -42,9 +42,15 @@
 				
 				var gesture:Gesture = new Gesture();
 				
+				for(var key:Object in this.currRecording) {
+					gesture.getPaths().addItem(this.currRecording[key]);
+				}
+				
+				
+				
 				// TODO: generate gesture from curr recording.
 				
-				trace("Finished Recording");
+				/*trace("Finished Recording");
 				trace("Num Paths: "+this.currRecording.length);
 				for(var key:Object in this.currRecording) {
 					var path:Path = this.currRecording[key];
@@ -57,10 +63,10 @@
 						var point:TouchPoint = TouchPoint(path.points.getItemAt(i));
 						trace("- Point ("+point.getX()+","+point.getY()+") @"+point.getTimestamp());
 					}
-				} 
+				} */
 				
 				
-				Alert.show("finished!","finished"); 
+				Alert.show("Gesture Saved!","Gesture Saved"); 
 				
 			}
 			

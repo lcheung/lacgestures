@@ -9,14 +9,23 @@ package models
 	
 	public class Gesture
 	{
-		public var gestureName:String;
-		public var timeLength:Number;
-		public var numBlobs:int;
-	
-		private var pathes:ArrayCollection = new ArrayCollection();
+		private var gestureName:String;
+		private var timeLength:Number;
+		private var numBlobs:int;
+		private var paths:ArrayCollection = new ArrayCollection();
 		
 		public function Gesture()
 		{
+		}
+		
+		public function getPaths():ArrayCollection
+		{
+			return this.paths;
+		}
+		
+		public function setPaths(paths:ArrayCollection):void
+		{
+			this.paths = paths;
 		}
 		
 		public function storeInDB():Number
