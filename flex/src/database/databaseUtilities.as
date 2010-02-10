@@ -55,13 +55,14 @@ package database
          	trace("The inserted rowID is:", rowID);		
 		}*/
 		
-		public static function testGestureDBFetch():void
+	/*	public static function testGestureDBFetch():void
 		{
 			var newGesture: models.Gesture = new models.Gesture();
 			
 			newGesture.populateGestureFromDB(1);
 						
 		}
+	*/
 
 	}
 }

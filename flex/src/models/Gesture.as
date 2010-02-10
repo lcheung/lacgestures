@@ -1,9 +1,7 @@
 package models
 {
-	import database.databaseUtilities;
-	
-	import flash.data.SQLStatement;
-	
+	import database.databaseUtilities;	
+	import flash.data.SQLStatement;	
 	import mx.collections.ArrayCollection;
 		
 	
@@ -11,49 +9,31 @@ package models
 	{
 		private var gestureName:String;
 		private var timeLength:Number;
-<<<<<<< HEAD
 		private var numBlobs:int;	
-		private var pathes:ArrayCollection = new ArrayCollection();
-		var stmtGestureInsert:SQLStatement = new SQLStatement();
-		var stmtPathInsert:SQLStatement = new SQLStatement();
-		var stmtTouchPointInsert:SQLStatement = new SQLStatement();
-		var stmtSectionInsert:SQLStatement = new SQLStatement();
-=======
-		private var numBlobs:int;
 		private var paths:ArrayCollection = new ArrayCollection();
->>>>>>> 7af3113cd563d5e18b8c468e23082da41d87d523
+		private var stmtGestureInsert:SQLStatement = new SQLStatement();
+		private var stmtPathInsert:SQLStatement = new SQLStatement();
+		private var stmtTouchPointInsert:SQLStatement = new SQLStatement();
+		private var stmtSectionInsert:SQLStatement = new SQLStatement();
+
 		
-		public function getGestureName():Sting
+		public function getGestureName():String
 		{
 			return gestureName;
 		}
-<<<<<<< HEAD
 		public function getTimeLength():Number
 		{
 			return timeLength;
 		}
 		public function getNumBlobs():int
-=======
-		
-		public function getPaths():ArrayCollection
-		{
-			return this.paths;
-		}
-		
-		public function setPaths(paths:ArrayCollection):void
-		{
-			this.paths = paths;
-		}
-		
-		public function storeInDB():Number
->>>>>>> 7af3113cd563d5e18b8c468e23082da41d87d523
 		{
 			return numBlobs;
-		}
-		public function getPathes():ArrayCollection
-		{
-			return pathes;
 		}	
+		public function getPaths():ArrayCollection
+		{
+			return paths;
+		}
+		
 		public function setGestureName(inName:String ):void
 		{
 			gestureName = inName;
@@ -66,9 +46,9 @@ package models
 		{
 			numBlobs = inNumBlobs;
 		}		
-		public function setPathes(inPathes:ArrayCollection ):void
+		public function setPaths(inPaths:ArrayCollection ):void
 		{
-			pathes = inPathes;
+			paths = inPaths;
 		}
 		
 		public function Gesture()
@@ -100,7 +80,7 @@ package models
             GestureID = stmtGestureInsert.getResult().lastInsertRowID;    
             
             // store all the pathes in the Gesture
-            for each(var path:Path in pathes)  
+            for each(var path:Path in paths)  
             {
             	var PathID:Number;
             	var SectionID:Number;
@@ -143,7 +123,7 @@ package models
             	}
             }
             
-               
+           return GestureID;    
 		}
 		
 		public function populateSingleGestureFromDB(key:Number):void
