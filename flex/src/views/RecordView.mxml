@@ -90,7 +90,7 @@
 							touchPoint.setY(tuioObj.y);
 							touchPoint.setTimestamp(new Date().time);
 							
-							this.currRecording[blobId].points.addItem(touchPoint);
+							this.currRecording[blobId].getPoints().addItem(touchPoint);
 						}
 					}
 				}
