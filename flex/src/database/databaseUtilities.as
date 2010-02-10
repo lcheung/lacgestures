@@ -46,9 +46,7 @@ package database
     		return sqlLiteGesturesConn;
         }
         
-        
-     
-        /*  EXTRA TESTING CODE */
+        /*  EXTRA TESTING CODE 
 		public static function testGestureDBCreation():void
 		{		              
             var newGesture: models.Gesture = new models.Gesture();
@@ -59,7 +57,7 @@ package database
 					
 			rowID = newGesture.storeInDB();	         	
          	trace("The inserted rowID is:", rowID);		
-		}
+		}*/
 		
 		public static function testGestureDBFetch():void
 		{
