@@ -44,9 +44,9 @@
 					gesture.getPaths().addItem(this.currRecording[key]);
 				}
 				
-				
-				
-				// TODO: generate gesture from curr recording.
+				// persist to database
+				gesture.storeInDB();
+			
 				
 				/*trace("Finished Recording");
 				trace("Num Paths: "+this.currRecording.length);
