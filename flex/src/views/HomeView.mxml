@@ -1,26 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="800" height="600" creationComplete="init();">
-
-	<mx:Script>
-		<![CDATA[
-			import controllers.HomeController;
-			import controllers.RecordController;
-			
-			public function init():void
-			{
-				// hookup listeners
-				btn_recGestures.addEventListener(TouchEvent.CLICK, recordGesturesPressed);
-				btn_recGestures.addEventListener(MouseEvent.CLICK, recordGesturesPressed);
-			}
-			
-			public function recordGesturesPressed(e:Event):void
-			{
-				var recController:RecordController = new RecordController();
-			}
-			
-		]]>
-	</mx:Script>
-
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="800" height="600">
 	<mx:Tile direction="horizontal" horizontalGap="10" verticalGap="15" borderStyle="inset"
 		paddingTop="10" paddingBottom="10" paddingRight="10" paddingLeft="10"
 	>

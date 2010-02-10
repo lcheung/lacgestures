@@ -17,6 +17,11 @@ package core
 	
 	public class DetectionEngine
 	{
+		//values used for configuring comparison
+		public static const ERROR_THRESHOLD = 1000;
+		public static const SLOPE_WEIGHT = 1;
+		public static const SCALE_WEIGHT = 1;
+		
 		public function DetectionEngine()
 		{
 		}
@@ -30,12 +35,20 @@ package core
 		 //Attempts to match a given gesture with those existing in the repository
 		 public function matchGesture(var reprod:Gesture):Gesture
 		 {
+		 	var minError:int = 0;
+		 	var closestGesture:Gesture = null;
 		 	//get list of existing gestures
 		 	var storedGestures:ArrayCollection = new ArrayCollection();
 		 	
-		 	var numPaths = reprod.getPaths().length
+		 	var reprodPaths:ArrayCollection = reprod.getPaths();
+		 	var numPaths = reprodPaths.length
 		 	
-		 	//first remove any gestures that don't have the same number of points
+		 	//prepare each path in the reproduced gesture by removing unnecessary points and parsing into sections
+		 	for each(var path:Path in reprodPaths) {
+		 		preparePath(path);
+		 	}
+		 	
+		 	//remove any gestures that don't have the same number of points
 		 	for each(var baseGesture:Gesture in storedGestures) {
 		 		if(baseGesture.getPaths().length != numPaths) {
 		 			//TODO: Remove these gestures from ones being compared
@@ -46,18 +59,35 @@ package core
 		 	//correlatePaths();
 		 	
 		 	for each(var gesture:Gesture in storedGestures) {
+		 		var gestureError:int = 0;
+		 		
 		 		//TODO: In the future, match the paths to be compared based on outcome from correlatePaths()
 		 		for(var i:int = 0; i < numPaths; i++) {
-			 		comparePaths(reprod.getPaths().getItemAt(i), gesture.getPaths().getItemAt(i));
+			 		gestureError += comparePaths(reprodPaths.getItemAt(i), gesture.getPaths().getItemAt(i));
 			 	}
+			 	
+			 	if(gestureError < minError || closestGesture == null) {
+			 		minError = gestureError;
+			 		closestGesture = gesture;
+			 	}
+			 	
 		 	}
 		 	
+		 	//is the most similar gesture close enough to the reproduced?
+		 	if(minError < DetectionEngine.ERROR_THRESHOLD) {
+		 		return closestGesture;
+		 	}
+		 	
+		 	//no gestures found
+		 	return null;
 		 	
 		 }
 		 
 		 //Compare the reproduced path to a collection of base pathes
-		 private function comparePaths(var reprod:Path, var base:Path)
+		 private function comparePaths(var reprod:Path, var base:Path):int
 		 {
+		 	var error:int = 0;
+		 	
 		 	var reprodSections:ArrayCollection = reprod.getSections();
 		 	var baseSections:ArrayCollection = base.getSections();
 		 	
@@ -65,9 +95,10 @@ package core
 		 	 
 		 	//iterate through each section
 		 	for(var i:int = 0; i < numReprodSections; i++) {
-		 		compareSection(reprodSections.getItemAt(i), baseSections.getItemAt(i));
+		 		error += compareSection(reprodSections.getItemAt(i), baseSections.getItemAt(i));
 		 	}
 		 	
+		 	return error;
 		 } 
 		 
 		 //Compare two sections
@@ -86,14 +117,14 @@ package core
 		 	var reprodSlopes:ArrayCollection = reprod.getSlopes();
 		 	
 		 	for(var i:int = 0; i < baseSlopes.length; i++ ) {
-		 		error += Math.abs(baseSlopes.getItemIndex(i) - reprodSlopes.getItemAt(i));
+		 		error += Math.abs(baseSlopes.getItemIndex(i) - reprodSlopes.getItemAt(i)) * DetectionEngine.SLOPE_WEIGHT;
 		 	}
 		 	
 		 	
 		 	//TODO: This needs to be scaled relative to the entire size of each respective gesture
 		 	//e.g. section width divided by total gesture width  
-		 	error += Math.abs(base.getWidth() - reprod.getWidth());
-		 	error += Math.abs(base.getHeight() - reprod.getHeight());
+		 	error += Math.abs(base.getWidth() - reprod.getWidth()) * DetectionEngine.SCALE_WEIGHT;
+		 	error += Math.abs(base.getHeight() - reprod.getHeight()) * DetectionEngine.SCALE_WEIGHT;
 		 	
 		 	return error;
 		 }
@@ -112,7 +143,7 @@ package core
 		
 		//Perform analysis on path
 		//i.e. parse into section, determine direction, slope, etc.
-		public function preparePath()
+		public function preparePath(path:Path):void
 		{
 			smoothPath();
 			parsePath();
@@ -127,7 +158,7 @@ package core
 		}
 
 		//Split a single blob path into sections based on direction		
-		private function parsePath(path:Path):ArrayCollection
+		private function parsePath(path:Path):void
 		{
 			//collection all the sections in this particular path
 			var sections:ArrayCollection = new ArrayCollection(); 
@@ -200,7 +231,7 @@ package core
 				currentPointIndex++;
 			}
 			
-			return sections;
+			path.setSections(sections);
 		}
 		
 		//Determine the size of the path

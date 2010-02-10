@@ -11,22 +11,42 @@ package models
 	{
 		private var gestureName:String;
 		private var timeLength:Number;
+<<<<<<< HEAD
 		private var numBlobs:int;	
 		private var pathes:ArrayCollection = new ArrayCollection();
 		var stmtGestureInsert:SQLStatement = new SQLStatement();
 		var stmtPathInsert:SQLStatement = new SQLStatement();
 		var stmtTouchPointInsert:SQLStatement = new SQLStatement();
 		var stmtSectionInsert:SQLStatement = new SQLStatement();
+=======
+		private var numBlobs:int;
+		private var paths:ArrayCollection = new ArrayCollection();
+>>>>>>> 7af3113cd563d5e18b8c468e23082da41d87d523
 		
 		public function getGestureName():Sting
 		{
 			return gestureName;
 		}
+<<<<<<< HEAD
 		public function getTimeLength():Number
 		{
 			return timeLength;
 		}
 		public function getNumBlobs():int
+=======
+		
+		public function getPaths():ArrayCollection
+		{
+			return this.paths;
+		}
+		
+		public function setPaths(paths:ArrayCollection):void
+		{
+			this.paths = paths;
+		}
+		
+		public function storeInDB():Number
+>>>>>>> 7af3113cd563d5e18b8c468e23082da41d87d523
 		{
 			return numBlobs;
 		}

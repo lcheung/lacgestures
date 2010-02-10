@@ -18,10 +18,6 @@
 		
 				// launch the home controller
 				var homeController:HomeController = new HomeController();
-				
-				//test Gestures DB object creation
-				trace("Test DB Gesture Object");
-				database.databaseUtilities.testGestureDBCreation();
 			}
 			
 	        private function applicationExit():void
