@@ -9,10 +9,6 @@ package database
 	{
         private static var sqlLiteGesturesConn:SQLConnection=null;
         
-	/*	public function databaseUtilities()
-		{
-		}
-	*/
         public static function openDatabase():Boolean
         {  	
         	if (sqlLiteGesturesConn == null)
