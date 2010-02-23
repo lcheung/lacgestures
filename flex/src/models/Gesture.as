@@ -1,7 +1,9 @@
 package models
 {
-	import database.databaseUtilities;	
-	import flash.data.SQLStatement;	
+	import database.databaseUtilities;
+	
+	import flash.data.SQLStatement;
+	
 	import mx.collections.ArrayCollection;
 		
 	
@@ -15,7 +17,7 @@ package models
 		private var stmtPathInsert:SQLStatement = new SQLStatement();
 		private var stmtTouchPointInsert:SQLStatement = new SQLStatement();
 		private var stmtSectionInsert:SQLStatement = new SQLStatement();
-
+		private var stmtSlopeSectionInsert:SQLStatement = new SQLStatement();
 		
 		public function getGestureName():String
 		{
@@ -55,6 +57,7 @@ package models
 		{			
 			stmtGestureInsert.sqlConnection = database.databaseUtilities.getInstance();			
 			stmtPathInsert.sqlConnection = database.databaseUtilities.getInstance();
+			stmtSectionInsert.sqlConnection = database.databaseUtilities.getInstance();
 			stmtTouchPointInsert.sqlConnection = database.databaseUtilities.getInstance();
 			
 			stmtSectionInsert.sqlConnection = database.databaseUtilities.getInstance();
@@ -65,9 +68,14 @@ package models
         	stmtPathInsert.text = "INSERT INTO Pathes (GestureID) " +
         		"VALUES (:GestID)";
 
-    		stmtSectionInsert.text = "INSERT INTO Section (GestureID, startIndex, endIndex, direction, witdth, height) " +
-    			"VALUES (:GestID, :StartIndex, :EndIndex, :Direction, :Width, :Height)";
-    			   		
+    		stmtSectionInsert.text = "INSERT INTO Sections (PathID, StartIndex, EndIndex, Direction, Width, Height) " +
+    			"VALUES (:PathID, :StartIndex, :EndIndex, :Direction, :Width, :Height)";
+    		
+			stmtTouchPointInsert.text = "INSERT INTO TouchPoints (PathID, XCord, YCord, TimeStamp) " +
+       			"VALUES (:SectionID, :X, :Y, :TimeStamp)";	
+       			
+       		stmtSlopeSectionInsert.text = "INSERT INTO SectionSlopes (SectionID, Slope) " +
+       			"VALUES (:SectionID, :Slope)";		   		
 		}
 		
 		public function storeInDB():Number
@@ -91,12 +99,8 @@ package models
             	
             	//for each path, store the Sections
             	for each (var section:Section in path.getSections()) 
-            	{
-				//	var slopes:ArrayCollection = section.getSlopes(); TODO what do we do with this???
-					
-					stmtSectionInsert.text = "INSERT INTO Section (GestureID, startIndex, endIndex, direction, witdth, height) " +
-            			"VALUES (:GestID, :StartIndex, :EndIndex, :Direction, :Width, :Height)";
-            		stmtSectionInsert.parameters[":GestID"] = GestureID;	
+            	{				
+            		stmtSectionInsert.parameters[":PathID"] = PathID;	
             		stmtSectionInsert.parameters[":StartIndex"] = section.getStartIndex();
             		stmtSectionInsert.parameters[":EndIndex"] = section.getEndIndex();
             		stmtSectionInsert.parameters[":Direction"] = section.getDirection();
@@ -104,22 +108,27 @@ package models
             		stmtSectionInsert.parameters[":Height"] = section.getHeight();
 
             		SectionID = stmtSectionInsert.getResult().lastInsertRowID;
+            		
+            		
+            		for each(var slope:Number in section.getSlopes())
+            		{
+	            		stmtSlopeSectionInsert.parameters[":SectionID"] = SectionID;
+	            		stmtSlopeSectionInsert.parameters[":Slope"] = slope;
+	            		SectionSlopeID = stmtSlopeSectionInsert.getResult().lastInsertRowID;
+            		}			
+            		
             	}
             	
             	//for each path, store the touch points
             	for each (var touchpoint:TouchPoint in path.getPoints())
             	{
             		var TouchPointID: Number;
-
-					stmtTouchPointInsert.text = "INSERT INTO touchPoints (SectionID, X, Y, TimeStamp) " +
-               			"VALUES (:SectionID, :X, :Y, :TimeStamp)";
-            		stmtTouchPointInsert.parameters[":SectionID"] = SectionID;	
-            		stmtTouchPointInsert.parameters[":X"] = touchpoint.getX();
-            		stmtTouchPointInsert.parameters[":Y"] = touchpoint.getY();
+            		stmtTouchPointInsert.parameters[":PathID"] = PathID;	
+            		stmtTouchPointInsert.parameters[":XCord"] = touchpoint.getX();
+            		stmtTouchPointInsert.parameters[":YCord"] = touchpoint.getY();
             		stmtTouchPointInsert.parameters[":TimeStamp"] = touchpoint.getTimestamp();
 
-            		TouchPointID = stmtTouchPointInsert.getResult().lastInsertRowID;
-            		
+            		TouchPointID = stmtTouchPointInsert.getResult().lastInsertRowID;            		
             	}
             }
             
