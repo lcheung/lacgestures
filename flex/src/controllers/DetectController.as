@@ -34,7 +34,8 @@ package controllers
 			this.view = new DetectView();
 			UIHelper.pushView(this.view);
 			
-			this.attachListeners(); 
+			this.attachListeners();
+			var theGestures:ArrayCollection = Gesture.getGesturesFromDB(); 
 		}
 		
 		private function attachListeners():void

@@ -138,7 +138,7 @@ package models
            return GestureID;    
 		}
 		
-		public function getGesturesFromDB():ArrayCollection
+		public static function getGesturesFromDB():ArrayCollection
 		{
 			var stmtKeySelect:SQLStatement = new SQLStatement();
             stmtKeySelect.sqlConnection =  database.databaseUtilities.getInstance();
@@ -148,12 +148,12 @@ package models
 			
 			var stmtGestureSelect:SQLStatement = new SQLStatement();
            	stmtGestureSelect.sqlConnection =  database.databaseUtilities.getInstance();
-            stmtGestureSelect.text = "SELECT Name, NumBlobs, TimeLength FROM Gestures"
+            stmtGestureSelect.text = "SELECT Name, NumBlobs, TimeLength FROM Gestures "
             	+ "WHERE GestureID = :GestID";
             	
             var stmtPathsSelect:SQLStatement = new SQLStatement();
             stmtPathsSelect.sqlConnection =  database.databaseUtilities.getInstance();	
-			stmtPathsSelect.text = "SELECT PathID FROM Paths"
+			stmtPathsSelect.text = "SELECT PathID FROM Paths "
             	+ "WHERE GestureID = :GestID";
             	
             var stmtSectionsSelect:SQLStatement = new SQLStatement();
@@ -163,7 +163,7 @@ package models
      
             var stmtSectionSlopesSelect:SQLStatement = new SQLStatement();
             stmtSectionSlopesSelect.sqlConnection =  database.databaseUtilities.getInstance();	
-			stmtSectionSlopesSelect.text = "SELECT Slope FROM SectionSlopes"
+			stmtSectionSlopesSelect.text = "SELECT Slope FROM SectionSlopes "
             	+ "WHERE SectionID = :SectID ORDER BY SectionSlopeID ASC";	
             	
             var stmtTouchPointsSelect:SQLStatement = new SQLStatement();
@@ -173,19 +173,20 @@ package models
 				 	
 			var PopulatedGestures:ArrayCollection = new ArrayCollection();
 			
-			for each (var GestureID:Number in GestureIDs)
+			for each (var GestureID:Object in GestureIDs)
 			{
 				
 				var singleGesture:Gesture = new Gesture();
 				
-				stmtGestureSelect.parameters[":GestID"] = GestureID; 
+				stmtGestureSelect.parameters[":GestID"] = GestureID.GestureID; 
 				stmtGestureSelect.execute();
 				var gestureResults:ArrayCollection = new ArrayCollection(stmtGestureSelect.getResult().data);
-				singleGesture.setGestureName(gestureResults[0].Name); 
-				singleGesture.setNumBlobs(gestureResults[0].NumBlobs);
-				singleGesture.setTimeLength(gestureResults[0].TimeLength);
+				var GestureObject:Object = gestureResults[0];
+				singleGesture.setGestureName(GestureObject.Name); 
+				singleGesture.setNumBlobs(GestureObject.NumBlobs);
+				singleGesture.setTimeLength(GestureObject.TimeLength);
 				
-				stmtPathsSelect.parameters[":GestID"] = GestureID; 
+				stmtPathsSelect.parameters[":GestID"] = GestureID.GestureID; 
 				stmtPathsSelect.execute();
 				var pathSQLResults:ArrayCollection = new ArrayCollection(stmtPathsSelect.getResult().data);
 				

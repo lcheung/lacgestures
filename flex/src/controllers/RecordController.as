@@ -59,7 +59,7 @@ package controllers
 			}
 			
 			//perform analysis on gesture so that can be stored too
-			DetectionEngine.prepareGesture(gesture);
+			//DetectionEngine.prepareGesture(gesture);
 			
 			// persist to database
 			gesture.storeInDB();
