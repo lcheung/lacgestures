@@ -1,5 +1,6 @@
 package core
 {
+	import models.Direction;
 	import models.Gesture;
 	import models.Path;
 	import models.Section;
@@ -7,24 +8,13 @@ package core
 	
 	import mx.collections.ArrayCollection;
 	
-	//an enum for defining path direction
-	public final class Direction {
-		public static const UP_LEFT:int = 1;
-		public static const UP_RIGHT:int = 2;
-		public static const DOWN_LEFT:int = 3;
-		public static const DOWN_RIGHT:int = 4;
-	}
 	
 	public class DetectionEngine
 	{
 		//values used for configuring comparison
-		public static const ERROR_THRESHOLD = 1000;
-		public static const SLOPE_WEIGHT = 1;
-		public static const SCALE_WEIGHT = 1;
-		
-		public function DetectionEngine()
-		{
-		}
+		public static const ERROR_THRESHOLD:int = 1000;
+		public static const SLOPE_WEIGHT:int = 1;
+		public static const SCALE_WEIGHT:int = 1;
 		
 		
 		/* Comparison
@@ -33,7 +23,7 @@ package core
 		 */
 		 
 		 //Attempts to match a given gesture with those existing in the repository
-		 public function matchGesture(var reprod:Gesture):Gesture
+		 public static function matchGesture(reprod:Gesture):Gesture
 		 {
 		 	var minError:int = 0;
 		 	var closestGesture:Gesture = null;
@@ -41,7 +31,7 @@ package core
 		 	var storedGestures:ArrayCollection = new ArrayCollection();
 		 	
 		 	var reprodPaths:ArrayCollection = reprod.getPaths();
-		 	var numPaths = reprodPaths.length
+		 	var numPaths:int = reprodPaths.length;
 		 	
 		 	//prepare each path in the reproduced gesture by removing unnecessary points and parsing into sections
 		 	for each(var path:Path in reprodPaths) {
@@ -63,7 +53,7 @@ package core
 		 		
 		 		//TODO: In the future, match the paths to be compared based on outcome from correlatePaths()
 		 		for(var i:int = 0; i < numPaths; i++) {
-			 		gestureError += comparePaths(reprodPaths.getItemAt(i), gesture.getPaths().getItemAt(i));
+			 		gestureError += comparePaths(reprodPaths.getItemAt(i) as Path, gesture.getPaths().getItemAt(i) as Path);
 			 	}
 			 	
 			 	if(gestureError < minError || closestGesture == null) {
@@ -84,7 +74,7 @@ package core
 		 }
 		 
 		 //Compare the reproduced path to a collection of base pathes
-		 private function comparePaths(var reprod:Path, var base:Path):int
+		 private static function comparePaths(reprod:Path, base:Path):int
 		 {
 		 	var error:int = 0;
 		 	
@@ -95,14 +85,14 @@ package core
 		 	 
 		 	//iterate through each section
 		 	for(var i:int = 0; i < numReprodSections; i++) {
-		 		error += compareSection(reprodSections.getItemAt(i), baseSections.getItemAt(i));
+		 		error += compareSection(reprodSections.getItemAt(i) as Section, baseSections.getItemAt(i) as Section);
 		 	}
 		 	
 		 	return error;
 		 } 
 		 
 		 //Compare two sections
-		 private function compareSection(reprod:Section, base:Section):int
+		 private static function compareSection(reprod:Section, base:Section):int
 		 {
 		 	//TODO: Adjust weight contributing to error for each comparison
 		 	//TODO: are their of the sections small enough to ignore?
@@ -117,7 +107,7 @@ package core
 		 	var reprodSlopes:ArrayCollection = reprod.getSlopes();
 		 	
 		 	for(var i:int = 0; i < baseSlopes.length; i++ ) {
-		 		error += Math.abs(baseSlopes.getItemIndex(i) - reprodSlopes.getItemAt(i)) * DetectionEngine.SLOPE_WEIGHT;
+		 		error += Math.abs((baseSlopes.getItemIndex(i) as Number) - (reprodSlopes.getItemAt(i) as Number)) * DetectionEngine.SLOPE_WEIGHT;
 		 	}
 		 	
 		 	
@@ -135,40 +125,48 @@ package core
 		 */
 		
 		//Categorize the points by their path
-		private function sortPointsByPath():void
+		private static function sortPointsByPath():void
 		{
 			
 		}
 		   
+		//Perform analysis on gesture
+		//i.e. parse into section, determine direction, slope, etc.
+		public static function prepareGesture(gesture:Gesture):void
+		{
+			for each(var path:Path in gesture.getPaths()) {
+				preparePath(path);
+			}
+		}
 		
 		//Perform analysis on path
 		//i.e. parse into section, determine direction, slope, etc.
-		public function preparePath(path:Path):void
+		public static function preparePath(path:Path):void
 		{
 			smoothPath();
-			parsePath();
+			parsePath(path);
 			//determinePathScale();
 		}
 		
 		//Remove anomalies from the path
 		//i.e. remove points that are inconsistent with common trend
-		private function smoothPath()
+		private static function smoothPath():void
 		{
 			
 		}
 
 		//Split a single blob path into sections based on direction		
-		private function parsePath(path:Path):void
+		private static function parsePath(path:Path):void
 		{
 			//collection all the sections in this particular path
 			var sections:ArrayCollection = new ArrayCollection(); 
 			
 			//the index of the first point in that section
-			var sectionStartIndex = 0;
+			var sectionStartIndex:int = 0;
 			
 			//a counter that indicates the current index of the point
 			//for the overall path
-			var currentPointIndex = 0;
+			var currentPointIndex:int = 0;
 			
 			//these variables are used for tracking the most recent known state
 			//in the iteration of points
@@ -184,27 +182,29 @@ package core
 				//temporary stores the change in X & Y directions from previous point to current
 				//-1 = movement down/left
 				//1 = movement up/right
-				var deltaX = 1;
-				var deltaY = 1;
-				
+				var deltaX:int = 1;
+				var deltaY:int = 1;
+				trace(point.getX() + ", " + point.getY()); 
+						
 				if(currentPointIndex != 0) {
 					if(point.getX() < previousPoint.getX()) {
 						deltaX = -1;
 					}
 					
-					if(point.getY() < previousPoint.getY()) {
+					if(point.getY() > previousPoint.getY()) {
 						deltaY = -1;
 					}
-				}
 				
-				if(deltaX < 0 && deltaY < 0) {
-					currentDirection = Direction.DOWN_LEFT;
-				} else if(deltaX < 0 && deltaY > 0) {
-					currentDirection = Direction.UP_LEFT;
-				} else if(deltaX > 0 && deltaY < 0) {
-					currentDirection = Direction.DOWN_RIGHT;
-				} else {
-					currentDirection = Direction.UP_RIGHT;
+				
+					if(deltaX < 0 && deltaY < 0) {
+						currentDirection = Direction.DOWN_LEFT;
+					} else if(deltaX < 0 && deltaY > 0) {
+						currentDirection = Direction.UP_LEFT;
+					} else if(deltaX > 0 && deltaY < 0) {
+						currentDirection = Direction.DOWN_RIGHT;
+					} else {
+						currentDirection = Direction.UP_RIGHT;
+					}
 				}
 				
 				/* now compare it to the direction of this section
@@ -236,9 +236,9 @@ package core
 		
 		//Determine the size of the path
 		//i.e. the max X & Y deltas 
-		private function determineSectionScale(points:ArrayCollection, section:Section)
+		private static function determineSectionScale(points:ArrayCollection, section:Section):void
 		{
-			var firstPoint:TouchPoint = points.getItemAt(0);
+			var firstPoint:TouchPoint = points.getItemAt(0) as TouchPoint;
 			
 			var maxX:int = firstPoint.getX();
 			var minX:int = firstPoint.getX();
@@ -264,19 +264,19 @@ package core
 		}
 		
 		//Calculate and store the slope at 20% intervals of the section
-		private function defineSectionSubslopes(path:Path, section:Section):void
+		private static function defineSectionSubslopes(path:Path, section:Section):void
 		{
 			var slopes:ArrayCollection = new ArrayCollection();		
 			
-			var points = path.getPoints();
+			var points:ArrayCollection = path.getPoints();
 			var numPoints:int = section.getEndIndex() - section.getStartIndex();
 			
 			for(var i:int = 0; i < numPoints; i += numPoints/5) {
-				var firstPoint:TouchPoint = points.getItemAt(i);
-				var secondPoint:TouchPoint = points.getItemAt(i + numPoints/5);
+				var firstPoint:TouchPoint = points.getItemAt(i) as TouchPoint;
+				var secondPoint:TouchPoint = points.getItemAt(i + numPoints/5) as TouchPoint;
 				
-				var rise:Number = secondPoint.getY() - firstPoints.getY();
-				var run:Number = secondPoint.getX() - firstPoints.getX();
+				var rise:Number = secondPoint.getY() - firstPoint.getY();
+				var run:Number = secondPoint.getX() - firstPoint.getX();
 				
 				//prevent divide by zero error
 				if(run == 0) {
@@ -294,7 +294,7 @@ package core
 		}
 		
 		//Pair up the paths on the reproduced gesture with those of the base gestures
-		private function correlatePaths(var reprod:Gesture, var baseCollection:ArrayCollection)
+		private static function correlatePaths(reprod:Gesture, baseCollection:ArrayCollection):void
 		{
 			//TODO: Don't just take any path at random to set as origin, use left-most (for example), instead
 			
@@ -310,8 +310,8 @@ package core
 			var reprodX:Array = new Array();
 			var reprodY:Array = new Array();
 			
-			var reprodOriginX:int = reprodPaths.getPoints().getItemAt(0).getX();
-			var reprodOriginY:int = reprodPaths.getPoints().getItemAt(0).getY();
+			var reprodOriginX:int = (reprodPaths as Path).getPoints().getItemAt(0).getX();
+			var reprodOriginY:int = (reprodPaths as Path).getPoints().getItemAt(0).getY();
 			
 			for each(var path:Path in reprodPaths) {
 				reprodX.push(path.getPoints().getItemAt(0).getX() - reprodOriginX);
@@ -320,7 +320,8 @@ package core
 			
 			//now do this for all the base gestures
 			for each(var gesture:Gesture in baseCollection) {
-				var paths = gesture.getPaths();
+				/*
+				var paths:ArrayCollection = gesture.getPaths();
 				
 				//stores the list of relative X/Y distances from origin point
 				var baseX:Array = new Array();
@@ -333,7 +334,7 @@ package core
 					baseX.push(path.getPoints().getItemAt(0).getX() - baseOriginX);
 					baseY.push(path.getPoints().getItemAt(0).getY() - baseOriginY);
 				}
-				
+				*/
 				//TODO: compare the relative distances between reproduced and base paths
 				
 					

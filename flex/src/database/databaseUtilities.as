@@ -9,16 +9,13 @@ package database
 	{
         private static var sqlLiteGesturesConn:SQLConnection=null;
         
-	/*	public function databaseUtilities()
-		{
-		}
-	*/
         public static function openDatabase():Boolean
         {  	
         	if (sqlLiteGesturesConn == null)
         	{
-	            var file:File;// = new File("C:/Users/Chris/Documents/lac/touchlib/AS3/src/gestures/Database/Gestures.db");
-	            file = File.userDirectory.resolvePath("Documents/lacgestures/flex/src//Database/Gestures.db");
+	            var file:File = new File();// = new File("C:/Users/Chris/Documents/lac/touchlib/AS3/src/gestures/Database/Gestures.db");
+	            file.nativePath = "C:/lacgestures/flex/src/database/Gestures.db";
+	            // = File..resolvePath("/lacgestures/flex/src//Database/Gestures.db");
 	            //"C:/Users/Chris/Documents/lac/touchlib/AS3/src/gestures/Database/Gestures.db";
 	            var isDBAccesible:Boolean = file.exists;
 	            if (isDBAccesible) {
@@ -59,13 +56,14 @@ package database
          	trace("The inserted rowID is:", rowID);		
 		}*/
 		
-		public static function testGestureDBFetch():void
+	/*	public static function testGestureDBFetch():void
 		{
 			var newGesture: models.Gesture = new models.Gesture();
 			
 			newGesture.populateGestureFromDB(1);
 						
 		}
+	*/
 
 	}
 }

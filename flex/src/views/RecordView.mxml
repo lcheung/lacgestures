@@ -2,5 +2,127 @@
 <mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
 	width="800" height="600" backgroundColor="green"
 >
+	<mx:Script>	
+		<![CDATA[
+			import app.core.action.Touchable;
+			import models.Path;
+			import mx.collections.ArrayCollection;
+			import models.TouchPoint;
+			import mx.controls.Alert;
+			import models.Gesture;
+			import models.Path;
+		
+			private var isRecording:Boolean;
+			
+			// map of blobId to array of touchpoints
+			private var currRecording:Array;
+		
+			// Array of blobIds that are currently touching the surface
+			private var activeBlobIds:ArrayCollection = new ArrayCollection();
+			
+			public function init():void
+			{
+				//attach event listeners
+				cnvs_gesturePad.addEventListener(TouchEvent.MOUSE_DOWN, gesturePadTouchDown);
+				cnvs_gesturePad.addEventListener(TouchEvent.MOUSE_UP, gesturePadTouchOff);
+				cnvs_gesturePad.addEventListener(Event.ENTER_FRAME, gestureRecorder);	
+			}
+			
+			private function startRecording():void
+			{
+				this.currRecording = new Array();
+				this.isRecording = true;
+			}
+			
+			private function finishRecording():void
+			{
+				this.isRecording = false;
+				
+				var gesture:Gesture = new Gesture();
+				
+				for(var key:Object in this.currRecording) {
+					gesture.getPaths().addItem(this.currRecording[key]);
+				}
+				
+				// persist to database
+				gesture.storeInDB();
+			
+				
+				/*trace("Finished Recording");
+				trace("Num Paths: "+this.currRecording.length);
+				for(var key:Object in this.currRecording) {
+					var path:Path = this.currRecording[key];
+					
+					gesture.getPaths();
+					
+					trace("Path "+key+":");
+					
+					for(var i:Number = 0; i<path.points.length; i++) {
+						var point:TouchPoint = TouchPoint(path.points.getItemAt(i));
+						trace("- Point ("+point.getX()+","+point.getY()+") @"+point.getTimestamp());
+					}
+				} */
+				
+				
+				Alert.show("Gesture Saved!","Gesture Saved"); 
+				
+			}
+			
+			private function gestureRecorder(e:Event):void
+			{
+				if (this.isRecording == true) {
+					for(var i:Number=0; i<this.activeBlobIds.length; i++) {
+						var blobId:Number = Number(this.activeBlobIds.getItemAt(i));
+						
+						// get the tuioObject for this blobId
+						var tuioObj:TUIOObject = TUIO.getObjectById(blobId);
+						
+						if (tuioObj != null) {
+							// if current blobId does not have a path instantiated
+							// in the current recording, make one.
+							if (this.currRecording[blobId] == null) {
+								this.currRecording[blobId] = new Path();
+							}
+							
+							//create the touchpoint object
+							var touchPoint:TouchPoint = new TouchPoint();
+							touchPoint.setX(tuioObj.x);
+							touchPoint.setY(tuioObj.y);
+							touchPoint.setTimestamp(new Date().time);
+							
+							this.currRecording[blobId].getPoints().addItem(touchPoint);
+						}
+					}
+				}
+			}
+			
+			// triggered when a finger is pressed down onto the 
+			// gesture pad.
+			private function gesturePadTouchDown(e:TouchEvent):void
+			{
+				this.activeBlobIds.addItem(e.ID);
+				
+				// start recording once a finger has been pressed down
+				if (this.isRecording == false) {
+					this.startRecording();
+				}
+			}
+			
+			// triggered when a finger is lifted off the gesture pad
+			private function gesturePadTouchOff(e:TouchEvent):void
+			{
+				this.activeBlobIds.removeItemAt(
+					this.activeBlobIds.getItemIndex(e.ID)
+				);
+				
+				// finish recording when no more fingers are on
+				// the gesture pad
+				if (this.activeBlobIds.length == 0) {
+					this.finishRecording();
+				}
+			}
+		]]>
+	</mx:Script>
+	
 	<mx:Canvas id="cnvs_gesturePad" backgroundColor="black" width="300" height="300"></mx:Canvas>
 </mx:Canvas>

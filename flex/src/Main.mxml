@@ -4,7 +4,6 @@
 		<![CDATA[
 			import database.databaseUtilities;
 			import controllers.HomeController; 
-			import core.Database;
 			
 			private var sqlLiteGesturesConn:SQLConnection=null;
 			
