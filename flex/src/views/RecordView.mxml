@@ -4,6 +4,7 @@
 >
 	<mx:Script>	
 		<![CDATA[
+			import core.DetectionEngine;
 			import app.core.action.Touchable;
 			import models.Path;
 			import mx.collections.ArrayCollection;
@@ -14,7 +15,7 @@
 		
 			private var isRecording:Boolean;
 			
-			// map of blobId to array of touchpoints
+			// map of blobId to array of paths
 			private var currRecording:Array;
 		
 			// Array of blobIds that are currently touching the surface
@@ -40,36 +41,40 @@
 				
 				var gesture:Gesture = new Gesture();
 				
-				for(var key:Object in this.currRecording) {
-					gesture.getPaths().addItem(this.currRecording[key]);
+				// traverse the currRecording to get the paths and move
+				// them to the gesture model
+				for each(var path:Path in this.currRecording) {
+					gesture.getPaths().addItem(path);
 				}
+				
+				
+				
+				trace("Finished Recording");
+				trace(gesture);
+				trace("Printing gesture object...");
+				for(var i:Number = 0; i < gesture.getPaths().length; i++) {
+					var thePath:Path = Path(gesture.getPaths().getItemAt(i));
+					trace(gesture.getPaths().getItemAt(i)); 
+					trace("Path "+i);
+					for (var j:Number = 0; j<thePath.getPoints().length; j++) {
+						var thePoint:TouchPoint = TouchPoint(thePath.getPoints().getItemAt(j));
+						trace("  Point j:");
+						trace("  x: "+thePoint.getX()+" | y: "+thePoint.getY()+") @"+thePoint.getTimestamp());
+					}
+				}
+				
+				//perform analysis on gesture so that can be stored too
+				core.DetectionEngine.prepareGesture(gesture);
 				
 				// persist to database
 				gesture.storeInDB();
-			
-				
-				/*trace("Finished Recording");
-				trace("Num Paths: "+this.currRecording.length);
-				for(var key:Object in this.currRecording) {
-					var path:Path = this.currRecording[key];
-					
-					gesture.getPaths();
-					
-					trace("Path "+key+":");
-					
-					for(var i:Number = 0; i<path.points.length; i++) {
-						var point:TouchPoint = TouchPoint(path.points.getItemAt(i));
-						trace("- Point ("+point.getX()+","+point.getY()+") @"+point.getTimestamp());
-					}
-				} */
-				
 				
 				Alert.show("Gesture Saved!","Gesture Saved"); 
-				
 			}
 			
 			private function gestureRecorder(e:Event):void
 			{
+
 				if (this.isRecording == true) {
 					for(var i:Number=0; i<this.activeBlobIds.length; i++) {
 						var blobId:Number = Number(this.activeBlobIds.getItemAt(i));
@@ -89,7 +94,7 @@
 							touchPoint.setX(tuioObj.x);
 							touchPoint.setY(tuioObj.y);
 							touchPoint.setTimestamp(new Date().time);
-							
+											
 							this.currRecording[blobId].getPoints().addItem(touchPoint);
 						}
 					}
