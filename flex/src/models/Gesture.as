@@ -138,21 +138,123 @@ package models
            return GestureID;    
 		}
 		
-		public function populateSingleGestureFromDB(key:Number):void
+		public function getGesturesFromDB():ArrayCollection
 		{
-			var stmtSelect:SQLStatement = new SQLStatement();
-            stmtSelect.sqlConnection =  database.databaseUtilities.getInstance();
-            stmtSelect.text =
-            	"SELECT Name, NumBlobs, TimeLength FROM Gestures" +
-            		" WHERE (GestureID=:GestureInputID)";
-			stmtSelect.parameters[":GestureInputID"] = key;
-			stmtSelect.execute();
-			var results:ArrayCollection = new ArrayCollection(stmtSelect.getResult().data);	
-			gestureName = results[0].Name;
-			timeLength = results[0].timeLength;
-			numBlobs = results[0].numBlobs;
+			var stmtKeySelect:SQLStatement = new SQLStatement();
+            stmtKeySelect.sqlConnection =  database.databaseUtilities.getInstance();
+            stmtKeySelect.text = "SELECT GestureID FROM Gestures";
+			stmtKeySelect.execute();			
+			var GestureIDs:ArrayCollection = new ArrayCollection(stmtKeySelect.getResult().data);	
 			
-		}
+			var stmtGestureSelect:SQLStatement = new SQLStatement();
+           	stmtGestureSelect.sqlConnection =  database.databaseUtilities.getInstance();
+            stmtGestureSelect.text = "SELECT Name, NumBlobs, TimeLength FROM Gestures"
+            	+ "WHERE GestureID = :GestID";
+            	
+            var stmtPathsSelect:SQLStatement = new SQLStatement();
+            stmtPathsSelect.sqlConnection =  database.databaseUtilities.getInstance();	
+			stmtPathsSelect.text = "SELECT PathID FROM Paths"
+            	+ "WHERE GestureID = :GestID";
+            	
+            var stmtSectionsSelect:SQLStatement = new SQLStatement();
+            stmtSectionsSelect.sqlConnection =  database.databaseUtilities.getInstance();	
+			stmtSectionsSelect.text = "SELECT SectionID, Direction, StartIndex, EndIndex, Width, " 
+				 + "Height FROM Sections WHERE PathID = :PathID";	           	
+     
+            var stmtSectionSlopesSelect:SQLStatement = new SQLStatement();
+            stmtSectionSlopesSelect.sqlConnection =  database.databaseUtilities.getInstance();	
+			stmtSectionSlopesSelect.text = "SELECT Slope FROM SectionSlopes"
+            	+ "WHERE SectionID = :SectID ORDER BY SectionSlopeID ASC";	
+            	
+            var stmtTouchPointsSelect:SQLStatement = new SQLStatement();
+            stmtTouchPointsSelect.sqlConnection =  database.databaseUtilities.getInstance();	
+			stmtTouchPointsSelect.text = "SELECT XCord, YCord, TimeStamp " 
+				 + "FROM TouchPoints WHERE PathID = :PathID";
+				 	
+			var PopulatedGestures:ArrayCollection = new ArrayCollection();
+			
+			for each (var GestureID:Number in GestureIDs)
+			{
+				
+				var singleGesture:Gesture = new Gesture();
+				
+				stmtGestureSelect.parameters[":GestID"] = GestureID; 
+				stmtGestureSelect.execute();
+				var gestureResults:ArrayCollection = new ArrayCollection(stmtGestureSelect.getResult().data);
+				singleGesture.setGestureName(gestureResults[0].Name); 
+				singleGesture.setNumBlobs(gestureResults[0].NumBlobs);
+				singleGesture.setTimeLength(gestureResults[0].TimeLength);
+				
+				stmtPathsSelect.parameters[":GestID"] = GestureID; 
+				stmtPathsSelect.execute();
+				var pathSQLResults:ArrayCollection = new ArrayCollection(stmtPathsSelect.getResult().data);
+				
+				var populatedPaths:ArrayCollection = new ArrayCollection();
+				
+				for each (var pathFromDB:Object in pathSQLResults)
+				{
+					var pathObject:Path = new Path();
+										
+					stmtSectionsSelect.parameters[":PathID"] = pathFromDB.PathID; 
+					stmtSectionsSelect.execute();
+					var sectionResults:ArrayCollection = new ArrayCollection(stmtSectionsSelect.getResult().data);
 
+					var sectionObjectList:ArrayCollection = new ArrayCollection();
+					
+					for each (var section:Object in sectionResults)
+					{
+						var sectionObject:Section = new Section();	
+						//populate the section information to the section object
+						sectionObject.setDirection(section.Direction);
+						sectionObject.setStartIndex(section.StartIndex);
+						sectionObject.setEndIndex(section.EndIndex);
+						sectionObject.setHeight(section.Height);
+						sectionObject.setWidth(section.Width);
+						
+						//obtain and add the section slopes for the section
+						stmtSectionSlopesSelect.parameters[":SectID"] = section.SectionID; 
+						stmtSectionSlopesSelect.execute();				
+						var sectionSlopesData:ArrayCollection = new ArrayCollection(stmtSectionSlopesSelect.getResult().data);	
+						sectionObject.setSlopes(sectionSlopesData);													
+						
+						//add the section to the sectionList
+						sectionObjectList.addItem(sectionObject);
+										
+					}
+					
+					//add the section Objects to the path
+					pathObject.setSections(sectionObjectList);
+						
+					stmtTouchPointsSelect.parameters[":PathID"] = pathFromDB.PathID; 
+					stmtTouchPointsSelect.execute();
+					var touchPointResults:ArrayCollection = new ArrayCollection(stmtTouchPointsSelect.getResult().data);
+					
+					var touchPointObjectList:ArrayCollection = new ArrayCollection();
+					
+					for each (var touchPoint:Object in touchPointResults)
+					{
+						var touchPointObject:TouchPoint = new TouchPoint();
+						
+						touchPointObject.setTimestamp(touchPoint.timeStamp);
+						touchPointObject.setX(touchPoint.XCord);
+						touchPointObject.setY(touchPoint.YCord);
+						
+						// add the touchPoints to the path
+						touchPointObjectList.addItem(touchPointObject);
+					}
+					
+					//add the touchpointlist to the path
+					pathObject.setPoints(touchPointObjectList);
+					
+					//add the path the list of paths
+					populatedPaths.addItem(pathObject);
+				}
+				
+				singleGesture.setPaths(populatedPaths);
+				
+				PopulatedGestures.addItem(singleGesture);
+			}
+			return PopulatedGestures;
+		}
 	}
 }
