@@ -143,16 +143,27 @@ package core
 		//i.e. parse into section, determine direction, slope, etc.
 		public static function preparePath(path:Path):void
 		{
-			smoothPath();
+			smoothPath(path);
 			parsePath(path);
 			//determinePathScale();
 		}
 		
 		//Remove anomalies from the path
 		//i.e. remove points that are inconsistent with common trend
-		private static function smoothPath():void
+		private static function smoothPath(path:Path):void
 		{
-			
+			var points:ArrayCollection = path.getPoints();
+			var recentValidPoint:TouchPoint = points.getItemAt(0) as TouchPoint;
+			var index:int = 0;
+			for each(var point:TouchPoint in points) {
+				if(index != 0) {
+					if(point.getX() == recentValidPoint.getX() && point.getY() == recentValidPoint.getY()) {
+						points.removeItemAt(index);
+					}
+				}
+				
+				index++;
+			}
 		}
 
 		//Split a single blob path into sections based on direction		
@@ -171,10 +182,10 @@ package core
 			//these variables are used for tracking the most recent known state
 			//in the iteration of points
 			var previousPoint:TouchPoint = null;
-			var previousDirection:int = 0;
+			var previousDirection:int = Direction.UNDEFINED;
 			
 			for each(var point:TouchPoint in path.getPoints()) {
-				var currentDirection:int = 0;
+				var currentDirection:int = Direction.UNDEFINED;
 				
 				/* first define the direction from the previous point to current
 				 */
@@ -187,6 +198,9 @@ package core
 				trace(point.getX() + ", " + point.getY()); 
 						
 				if(currentPointIndex != 0) {
+					
+					 
+					
 					if(point.getX() < previousPoint.getX()) {
 						deltaX = -1;
 					}
@@ -196,15 +210,18 @@ package core
 					}
 				
 				
-					if(deltaX < 0 && deltaY < 0) {
-						currentDirection = Direction.DOWN_LEFT;
-					} else if(deltaX < 0 && deltaY > 0) {
-						currentDirection = Direction.UP_LEFT;
-					} else if(deltaX > 0 && deltaY < 0) {
-						currentDirection = Direction.DOWN_RIGHT;
-					} else {
-						currentDirection = Direction.UP_RIGHT;
+					if(point.getX() != previousPoint.getX() && point.getY() != previousPoint.getY()) {
+						if(deltaX < 0 && deltaY < 0) {
+							currentDirection = Direction.DOWN_LEFT;
+						} else if(deltaX < 0 && deltaY > 0) {
+							currentDirection = Direction.UP_LEFT;
+						} else if(deltaX > 0 && deltaY < 0) {
+							currentDirection = Direction.DOWN_RIGHT;
+						} else {
+							currentDirection = Direction.UP_RIGHT;
+						}
 					}
+					
 				}
 				
 				/* now compare it to the direction of this section
