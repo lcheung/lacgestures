@@ -2,6 +2,7 @@
 package models
 {
 	public final class Direction {
+		public static const UNDEFINED:int = 0;
 		public static const UP_LEFT:int = 1;
 		public static const UP_RIGHT:int = 2;
 		public static const DOWN_LEFT:int = 3;
