@@ -11,7 +11,7 @@ package models
 	{
 		private var gestureName:String;
 		private var timeLength:Number;
-		private var numBlobs:int;	
+		private var numBlobs:Number;	
 		private var paths:ArrayCollection = new ArrayCollection();
 		private var stmtGestureInsert:SQLStatement = new SQLStatement();
 		private var stmtPathInsert:SQLStatement = new SQLStatement();
@@ -65,14 +65,14 @@ package models
 			stmtGestureInsert.text = "INSERT INTO Gestures (Name, NumBlobs, TimeLength) " +
                 "VALUES (:Name, :NumBlobs, :TimeLength)";
                     
-        	stmtPathInsert.text = "INSERT INTO Pathes (GestureID) " +
+        	stmtPathInsert.text = "INSERT INTO Paths (GestureID) " +
         		"VALUES (:GestID)";
 
     		stmtSectionInsert.text = "INSERT INTO Sections (PathID, StartIndex, EndIndex, Direction, Width, Height) " +
     			"VALUES (:PathID, :StartIndex, :EndIndex, :Direction, :Width, :Height)";
     		
 			stmtTouchPointInsert.text = "INSERT INTO TouchPoints (PathID, XCord, YCord, TimeStamp) " +
-       			"VALUES (:SectionID, :X, :Y, :TimeStamp)";	
+       			"VALUES (:PathID, :XCord, :YCord, :TimeStamp)";	
        			
        		stmtSlopeSectionInsert.text = "INSERT INTO SectionSlopes (SectionID, Slope) " +
        			"VALUES (:SectionID, :Slope)";		   		
@@ -94,7 +94,7 @@ package models
             	var SectionID:Number;
             	
             	stmtPathInsert.parameters[":GestID"] = GestureID;
-            	
+            	stmtPathInsert.execute();
             	PathID = stmtPathInsert.getResult().lastInsertRowID;
             	
             	//for each path, store the Sections
@@ -107,6 +107,7 @@ package models
             		stmtSectionInsert.parameters[":Width"] = section.getWidth();
             		stmtSectionInsert.parameters[":Height"] = section.getHeight();
 
+					stmtSectionInsert.execute();
             		SectionID = stmtSectionInsert.getResult().lastInsertRowID;
             		
             		
@@ -114,7 +115,8 @@ package models
             		{
 	            		stmtSlopeSectionInsert.parameters[":SectionID"] = SectionID;
 	            		stmtSlopeSectionInsert.parameters[":Slope"] = slope;
-	            		SectionSlopeID = stmtSlopeSectionInsert.getResult().lastInsertRowID;
+	            		stmtSlopeSectionInsert.execute();
+	            		var SectionSlopeID:int = stmtSlopeSectionInsert.getResult().lastInsertRowID;
             		}			
             		
             	}
@@ -128,6 +130,7 @@ package models
             		stmtTouchPointInsert.parameters[":YCord"] = touchpoint.getY();
             		stmtTouchPointInsert.parameters[":TimeStamp"] = touchpoint.getTimestamp();
 
+					stmtTouchPointInsert.execute();
             		TouchPointID = stmtTouchPointInsert.getResult().lastInsertRowID;            		
             	}
             }
