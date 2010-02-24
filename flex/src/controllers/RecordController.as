@@ -35,9 +35,9 @@ package controllers
 		private function attachListeners():void
 		{
 			//attach event listeners
-			this.view.cnvs_gesturePad.addEventListener(TouchEvent.MOUSE_DOWN, this.gesturePadTouchDown);
-			this.view.cnvs_gesturePad.addEventListener(TouchEvent.MOUSE_UP, this.gesturePadTouchOff);
-			this.view.cnvs_gesturePad.addEventListener(Event.ENTER_FRAME, this.gestureRecorder);	
+			this.view.cnvs_gesturePad.addEventListener(TouchEvent.MOUSE_DOWN, gesturePadTouchDown);
+			this.view.cnvs_gesturePad.addEventListener(TouchEvent.MOUSE_UP, gesturePadTouchOff);
+			this.view.cnvs_gesturePad.addEventListener(Event.ENTER_FRAME, gestureRecorder);	
 		}
 		
 		private function startRecording():void
