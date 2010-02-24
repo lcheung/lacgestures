@@ -20,13 +20,20 @@ package controllers
 		
 		private function attachListeners():void
 		{
-			this.view.btn_recGestures.addEventListener(TouchEvent.CLICK, recordGesturesPressed);
-			this.view.btn_recGestures.addEventListener(MouseEvent.CLICK, recordGesturesPressed);	
+			this.view.btn_recordGestures.addEventListener(TouchEvent.CLICK, recordGesturesPressed);
+			this.view.btn_recordGestures.addEventListener(MouseEvent.CLICK, recordGesturesPressed);
+			this.view.btn_detectGestures.addEventListener(TouchEvent.CLICK, detectGesturesPressed);
+			this.view.btn_detectGestures.addEventListener(MouseEvent.CLICK, detectGesturesPressed);	
 		}
 		
 		private function recordGesturesPressed(e:Event):void
 		{
-			var recController:RecordController = new RecordController();
+			var recordController:RecordController = new RecordController();
+		}
+		
+		private function detectGesturesPressed(e:Event):void
+		{
+			var detectController:DetectController = new DetectController();
 		}
 	}
 }

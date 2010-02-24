@@ -3,8 +3,8 @@
 	<mx:Tile direction="horizontal" horizontalGap="10" verticalGap="15" borderStyle="inset"
 		paddingTop="10" paddingBottom="10" paddingRight="10" paddingLeft="10"
 	>
-		<mx:Button id="btn_recGestures" height="50" width="175" label="Record Gesture"/>
-		<mx:Button id="btn_viewGestures" height="50" width="175" label="View Saved Gestures"/>
+		<mx:Button id="btn_recordGestures" height="50" width="175" label="Record Gesture"/>
+		<mx:Button id="btn_detectGestures" height="50" width="175" label="Detect Gesture"/>
 		<mx:Button id="btn_help" height="50" width="175" label="Help"/>
 		<mx:Button id="btn_about" height="50" width="175" label="About"/>
 	</mx:Tile>

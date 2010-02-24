@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+	width="800" height="600" backgroundColor="green"
+>
+	<mx:Canvas id="cnvs_gesturePad" backgroundColor="black" width="300" height="300"></mx:Canvas>
+</mx:Canvas>
