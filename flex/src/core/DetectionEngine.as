@@ -15,16 +15,12 @@ package core
 		public static const DOWN_RIGHT:int = 4;
 	}
 	
-	public class DetectionEngine
+	public static class DetectionEngine
 	{
 		//values used for configuring comparison
 		public static const ERROR_THRESHOLD = 1000;
 		public static const SLOPE_WEIGHT = 1;
 		public static const SCALE_WEIGHT = 1;
-		
-		public function DetectionEngine()
-		{
-		}
 		
 		
 		/* Comparison
@@ -33,7 +29,7 @@ package core
 		 */
 		 
 		 //Attempts to match a given gesture with those existing in the repository
-		 public function matchGesture(var reprod:Gesture):Gesture
+		 public static function matchGesture(var reprod:Gesture):Gesture
 		 {
 		 	var minError:int = 0;
 		 	var closestGesture:Gesture = null;
@@ -84,7 +80,7 @@ package core
 		 }
 		 
 		 //Compare the reproduced path to a collection of base pathes
-		 private function comparePaths(var reprod:Path, var base:Path):int
+		 private static function comparePaths(var reprod:Path, var base:Path):int
 		 {
 		 	var error:int = 0;
 		 	
@@ -102,7 +98,7 @@ package core
 		 } 
 		 
 		 //Compare two sections
-		 private function compareSection(reprod:Section, base:Section):int
+		 private static function compareSection(reprod:Section, base:Section):int
 		 {
 		 	//TODO: Adjust weight contributing to error for each comparison
 		 	//TODO: are their of the sections small enough to ignore?
@@ -135,7 +131,7 @@ package core
 		 */
 		
 		//Categorize the points by their path
-		private function sortPointsByPath():void
+		private static function sortPointsByPath():void
 		{
 			
 		}
@@ -143,7 +139,7 @@ package core
 		
 		//Perform analysis on path
 		//i.e. parse into section, determine direction, slope, etc.
-		public function preparePath(path:Path):void
+		public static function preparePath(path:Path):void
 		{
 			smoothPath();
 			parsePath();
@@ -152,13 +148,13 @@ package core
 		
 		//Remove anomalies from the path
 		//i.e. remove points that are inconsistent with common trend
-		private function smoothPath()
+		private static function smoothPath()
 		{
 			
 		}
 
 		//Split a single blob path into sections based on direction		
-		private function parsePath(path:Path):void
+		private static function parsePath(path:Path):void
 		{
 			//collection all the sections in this particular path
 			var sections:ArrayCollection = new ArrayCollection(); 
@@ -236,7 +232,7 @@ package core
 		
 		//Determine the size of the path
 		//i.e. the max X & Y deltas 
-		private function determineSectionScale(points:ArrayCollection, section:Section)
+		private static function determineSectionScale(points:ArrayCollection, section:Section)
 		{
 			var firstPoint:TouchPoint = points.getItemAt(0);
 			
@@ -264,7 +260,7 @@ package core
 		}
 		
 		//Calculate and store the slope at 20% intervals of the section
-		private function defineSectionSubslopes(path:Path, section:Section):void
+		private static function defineSectionSubslopes(path:Path, section:Section):void
 		{
 			var slopes:ArrayCollection = new ArrayCollection();		
 			
@@ -294,7 +290,7 @@ package core
 		}
 		
 		//Pair up the paths on the reproduced gesture with those of the base gestures
-		private function correlatePaths(var reprod:Gesture, var baseCollection:ArrayCollection)
+		private static function correlatePaths(var reprod:Gesture, var baseCollection:ArrayCollection)
 		{
 			//TODO: Don't just take any path at random to set as origin, use left-most (for example), instead
 			
