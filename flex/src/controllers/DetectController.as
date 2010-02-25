@@ -35,6 +35,7 @@ package controllers
 			UIHelper.pushView(this.view);
 			
 			this.attachListeners();
+			
 			var theGestures:ArrayCollection = Gesture.getGesturesFromDB(); 
 		}
 		
