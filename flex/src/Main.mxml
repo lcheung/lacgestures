@@ -9,11 +9,14 @@
 			
 			private function init():void
 			{
+				// put the application into full screen mode
+				stage.displayState = StageDisplayState.FULL_SCREEN_INTERACTIVE;
+				
 				// initialize the TUIO object
 				TUIO.init(this, 'localhost', 3000, '', true);
 				
 				// initialize the database
-				sqlLiteGesturesConn = database.databaseUtilities.getInstance();
+				//sqlLiteGesturesConn = database.databaseUtilities.getInstance();
 		
 				// launch the home controller
 				var homeController:HomeController = new HomeController();
@@ -28,12 +31,10 @@
 			        NativeApplication.nativeApplication.exit(); 
 			    } 
 			}
-			
-			
 		]]>
 	</mx:Script>
 	
-	<mx:ViewStack id="mainViewStack">	
+	<mx:ViewStack id="mainViewStack" width="100%" height="100%">	
 	</mx:ViewStack>
 	
 </mx:WindowedApplication>
