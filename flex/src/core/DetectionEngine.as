@@ -145,7 +145,7 @@ package core
 		{
 			smoothPath(path);
 			parsePath(path);
-			//determinePathScale();
+			determinePathSize(path);
 		}
 		
 		//Remove anomalies from the path
@@ -279,9 +279,39 @@ package core
 			return 0;
 		} 
 		
+		
+		private static function determinePathSize(path:Path):void
+		{
+			var points:ArrayCollection = path.getPoints();
+			
+			var firstPoint:TouchPoint = points.getItemAt(0) as TouchPoint;
+			
+			var maxX:int = firstPoint.getX();
+			var minX:int = firstPoint.getX();
+			var maxY:int = firstPoint.getY();
+			var minY:int = firstPoint.getY();
+						
+			for each(var point:TouchPoint in points) {
+				if(point.getX() < minX) {
+					minX = point.getX()
+				} else if(point.getX() > maxX) {
+					maxX = point.getX();
+				}
+				
+				if(point.getY() < minY) {
+					minX = point.getY()
+				} else if(point.getY() > maxY) {
+					maxY = point.getY();
+				}
+			}
+			
+			path.setHeight(maxY - minY);
+			path.setWidth(maxX - minX);
+		}
+		
 		//Determine the size of the path
 		//i.e. the max X & Y deltas 
-		private static function determineSectionScale(points:ArrayCollection, section:Section):void
+		private static function determineSectionSize(points:ArrayCollection, section:Section):void
 		{
 			var firstPoint:TouchPoint = points.getItemAt(0) as TouchPoint;
 			
@@ -308,6 +338,7 @@ package core
 			section.setHeight(maxY - minY); 
 		}
 		
+				
 		//Calculate and store the slope at 20% intervals of the section
 		private static function defineSectionSubslopes(path:Path, section:Section):void
 		{
