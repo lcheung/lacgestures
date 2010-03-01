@@ -162,16 +162,7 @@ package controllers
 			this.activeBlobIds.addItem(e.ID);
 			
 			var curPt:Point = this.view.cnvs_gesturePad.globalToLocal(new Point(e.stageX, e.stageY));
- 
-            var circle:Sprite = new Sprite(); //create a new sprite
- 
-            circle.graphics.lineStyle(10, 0xff0000); //set line width to 10px and red
-            circle.graphics.drawCircle(0,0,40); // draw a 40px circle
-            circle.x = curPt.x; //put it where touch is (x cord)
-            circle.y = curPt.y; //put it where touch is (y cord)
- 
-            this.view.cnvs_gesturePad.addChild(circle); //add the circle where touch happened
-			
+			this.view.cnvs_gesturePad.graphics.drawCircle(curPt.x, curPt.y, 40);
 			
 			
 			
