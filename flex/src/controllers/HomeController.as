@@ -2,6 +2,7 @@
 package controllers
 {
 	import flash.events.Event;
+	import flash.events.MouseEvent;
 	import flash.events.TUIO;
 	import flash.events.TUIOObject;
 	import flash.events.TouchEvent;
@@ -73,16 +74,25 @@ package controllers
 			
 			var saveButton:Button = new Button();
 			saveButton.label = "Save Gesture!";
+			saveButton.addEventListener(MouseEvent.CLICK, this.saveGesture);
+			saveButton.addEventListener(TouchEvent.CLICK, this.saveGesture);
 			
 			vBox.addChild(label);
 			vBox.addChild(saveButton);
 			this.view.cnvs_message.addChild(vBox);
 		}
 		
+		private function saveGesture(e:Event):void
+		{
+			Alert.show("saved");
+		}
+		
 		private function startDetecting():void
 		{
 			this.currDetection = new Array();
 			this.isDetecting = true;
+			
+			this.showMessageDialog("Detecting gesture in progress...");
 		}
 			
 		private function finishDetecting():void
@@ -106,7 +116,7 @@ package controllers
 			
 			if (matchedGesture != null) {
 				// match has been found
-				Alert.show("Match successful");
+				this.showMessageDialog("Gesture Found!");
 			} else {
 				// If no match was found, ask if they want to save the new one
 				this.showSaveDialog();
