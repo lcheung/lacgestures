@@ -1,8 +1,6 @@
 // ActionScript file
 package controllers
 {
-	import core.DetectionEngine;
-	
 	import flash.events.Event;
 	import flash.events.TUIO;
 	import flash.events.TUIOObject;
@@ -45,6 +43,12 @@ package controllers
 			this.view.cnvs_gesturePad.addEventListener(Event.ENTER_FRAME, this.gestureDetector);	
 		}
 		
+		private function showSaveDialog():void
+		{
+			// Ask the user whether they want to save their gesture
+			this.view.lbl_message.text = "No such gesture detected. Do you want to create it?";
+		}
+		
 		private function startDetecting():void
 		{
 			this.currDetection = new Array();
@@ -61,15 +65,21 @@ package controllers
 				detectedGesture.getPaths().addItem(path);
 			}
 			
+			/*
 			//perform analysis on gesture so that can be stored too
 			DetectionEngine.prepareGesture(detectedGesture);
 			
 			var matchedGesture:Gesture = DetectionEngine.matchGesture(detectedGesture);
+			*/
 			
-			if (matchedGesture == null) {
-				Alert.show("No match found");
-			} else {
+			var matchedGesture:Gesture = null;
+			
+			if (matchedGesture != null) {
+				// match has been found
 				Alert.show("Match successful");
+			} else {
+				// If no match was found, ask if they want to save the new one
+				this.showSaveDialog();
 			}	 
 		}
 		
