@@ -59,7 +59,7 @@ package controllers
 		
 		private function showSaveDialog():void
 		{
-			this.view.cnvs_gesturePad.removeAllChildren();
+			this.view.cnvs_message.removeAllChildren();
 			
 			var label:Label = new Label();
 			label.text = "The gesture does not exist. Do you want to create it?";
