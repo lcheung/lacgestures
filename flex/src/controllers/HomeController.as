@@ -5,13 +5,13 @@ package controllers
 	import flash.events.TUIO;
 	import flash.events.TUIOObject;
 	import flash.events.TouchEvent;
-	import flash.text.TextFormat;
 	
 	import models.Gesture;
 	import models.Path;
 	import models.TouchPoint;
 	
 	import mx.collections.ArrayCollection;
+	import mx.containers.VBox;
 	import mx.controls.Alert;
 	import mx.controls.Button;
 	import mx.controls.Label;
@@ -64,6 +64,8 @@ package controllers
 		{
 			this.view.cnvs_message.removeAllChildren();
 			
+			var vBox:VBox = new VBox();
+			
 			var label:Label = new Label();
 			label.text = "The gesture does not exist. Do you want to create it?";
 			label.setStyle("fontSize", "14");
@@ -72,8 +74,9 @@ package controllers
 			var saveButton:Button = new Button();
 			saveButton.label = "Save Gesture!";
 			
-			this.view.cnvs_message.addChild(label);
-			this.view.cnvs_message.addChild(saveButton);
+			vBox.addChild(label);
+			vBox.addChild(saveButton);
+			this.view.cnvs_message.addChild(vBox);
 		}
 		
 		private function startDetecting():void
