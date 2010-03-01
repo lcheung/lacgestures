@@ -165,8 +165,8 @@ package controllers
 			var curPt:Point = this.view.cnvs_gesturePad.globalToLocal(new Point(e.stageX, e.stageY));
 			var circle:Sprite = new Sprite(); 
         
-        	circle.graphics.beginFill(0xFFFFFF);
-        	circle.graphics.drawCircle(curPt.x, curPt.y, 40);
+        	circle.graphics.beginFill(0xFFFFFF,0.4);
+        	circle.graphics.drawCircle(curPt.x, curPt.y, 15);
         	
         	  var regularObject:UIComponent;
             regularObject = new UIComponent();
