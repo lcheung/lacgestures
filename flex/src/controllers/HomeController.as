@@ -162,7 +162,12 @@ package controllers
 			this.activeBlobIds.addItem(e.ID);
 			
 			var curPt:Point = this.view.cnvs_gesturePad.globalToLocal(new Point(e.stageX, e.stageY));
-			this.view.cnvs_gesturePad.graphics.drawCircle(curPt.x, curPt.y, 40);
+			var circle:Sprite = new Sprite(); 
+        
+        	circle.graphics.beginFill(0xFFFFFF);
+        	circle.graphics.drawCircle(curPt.x, curPt.y, 40);
+        	
+			this.view.cnvs_gesturePad.addChild(circle);
 			
 			
 			
