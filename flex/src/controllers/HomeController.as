@@ -14,6 +14,7 @@ package controllers
 	import models.Path;
 	import models.TouchPoint;
 	
+	import mx.core.UIComponent;
 	import mx.collections.ArrayCollection;
 	import mx.containers.VBox;
 	import mx.controls.Alert;
@@ -167,7 +168,11 @@ package controllers
         	circle.graphics.beginFill(0xFFFFFF);
         	circle.graphics.drawCircle(curPt.x, curPt.y, 40);
         	
-			this.view.cnvs_gesturePad.addChild(circle);
+        	  var regularObject:UIComponent;
+            regularObject = new UIComponent();
+            regularObject.addChild(circle);
+        	
+			this.view.cnvs_gesturePad.addChild(regularObject);
 			
 			
 			
