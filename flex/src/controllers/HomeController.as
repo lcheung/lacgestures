@@ -5,6 +5,7 @@ package controllers
 	import flash.events.TUIO;
 	import flash.events.TUIOObject;
 	import flash.events.TouchEvent;
+	import flash.text.TextFormat;
 	
 	import models.Gesture;
 	import models.Path;
@@ -34,7 +35,7 @@ package controllers
 			this.view = new HomeView();
 			UIHelper.pushView(this.view);
 			
-			this.showMessageDialog("Use your fingers to create a gesture in the pad below");
+			this.showMessageDialog("Use your fingers to create a gesture in the pad below.");
 			
 			this.attachListeners(); 
 		}
@@ -49,10 +50,12 @@ package controllers
 		
 		private function showMessageDialog(text:String):void
 		{
-			this.view.cnvs_gesturePad.removeAllChildren();
+			this.view.cnvs_message.removeAllChildren();
 			
-			var label = new Label();
+			var label:Label = new Label();
 			label.text = text;
+			label.setStyle("fontSize", "14");
+			label.setStyle("color","0xFFFFFF");
 			
 			this.view.cnvs_message.addChild(label);
 		}
@@ -63,6 +66,8 @@ package controllers
 			
 			var label:Label = new Label();
 			label.text = "The gesture does not exist. Do you want to create it?";
+			label.setStyle("fontSize", "14");
+			label.setStyle("color","0xFFFFFF");
 			
 			var saveButton:Button = new Button();
 			saveButton.label = "Save Gesture!";
