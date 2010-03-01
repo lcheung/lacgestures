@@ -187,7 +187,7 @@ package core
 			var previousDirection:int = Direction.UNDEFINED;
 			
 			for each(var point:TouchPoint in path.getPoints()) {
-				currentDirection = Direction.UNDEFINED;
+				//currentDirection = Direction.UNDEFINED;
 				
 				/* first define the direction from the previous point to current
 				 */
@@ -314,12 +314,49 @@ package core
 			var slopes:ArrayCollection = new ArrayCollection();		
 			
 			var points:ArrayCollection = path.getPoints();
-			var numPoints:int = section.getEndIndex() - section.getStartIndex();
-			
-			for(var i:int = 0; i < numPoints; i += numPoints/5) {
+			var numPoints:int = section.getEndIndex() - section.getStartIndex() + 1;
+			/*
+			for(var i:int = 0; i < numPoints - (numPoints/5); i += numPoints/5) {
 				var firstPoint:TouchPoint = points.getItemAt(i) as TouchPoint;
 				var secondPoint:TouchPoint = points.getItemAt(i + numPoints/5) as TouchPoint;
 				
+				if(secondPoint == null) {
+					
+				}
+			*/
+			var sampleSize:int = numPoints/5 + 1;
+			if(sampleSize == 0) {
+				sampleSize = 1;
+			}
+			
+			for(var i:int = 0; i < 5; i++) {
+				var firstIndex:int = i * (sampleSize-1);
+				var secondIndex:int = (i+1) * (sampleSize-1);
+				if(secondIndex > numPoints - 1) {
+					secondIndex = numPoints - 1;
+				}
+				
+				var firstPoint:TouchPoint = points.getItemAt(firstIndex) as TouchPoint;
+				var secondPoint:TouchPoint = points.getItemAt(secondIndex) as TouchPoint;
+				
+				if(i == 4) {
+					secondPoint = points.getItemAt(numPoints - 1) as TouchPoint;
+				}
+				
+				if(firstPoint == null) {
+					if(numPoints > 1) {
+						firstPoint = points.getItemAt(numPoints - 2)  as TouchPoint;	
+					} else {
+						firstPoint = points.getItemAt(0)  as TouchPoint;
+					}
+					
+				}
+				
+				if(secondPoint == null) {
+					secondPoint = points.getItemAt(numPoints - 1) as TouchPoint;
+				}
+				
+					
 				var rise:Number = secondPoint.getY() - firstPoint.getY();
 				var run:Number = secondPoint.getX() - firstPoint.getX();
 				
