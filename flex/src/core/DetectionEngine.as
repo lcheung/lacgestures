@@ -179,13 +179,15 @@ package core
 			//for the overall path
 			var currentPointIndex:int = 0;
 			
+			var currentDirection:int = Direction.UNDEFINED;
+			
 			//these variables are used for tracking the most recent known state
 			//in the iteration of points
 			var previousPoint:TouchPoint = null;
 			var previousDirection:int = Direction.UNDEFINED;
 			
 			for each(var point:TouchPoint in path.getPoints()) {
-				var currentDirection:int = Direction.UNDEFINED;
+				currentDirection = Direction.UNDEFINED;
 				
 				/* first define the direction from the previous point to current
 				 */
@@ -210,6 +212,7 @@ package core
 					}
 				
 				
+					//added this IF statement to reduce the hyper-switching of sections
 					if(point.getX() != previousPoint.getX() && point.getY() != previousPoint.getY()) {
 						if(deltaX < 0 && deltaY < 0) {
 							currentDirection = Direction.DOWN_LEFT;
@@ -219,6 +222,11 @@ package core
 							currentDirection = Direction.DOWN_RIGHT;
 						} else {
 							currentDirection = Direction.UP_RIGHT;
+						}
+						
+						//add this to prevent the UNDEFINED direction from being a section initially
+						if(previousDirection == Direction.UNDEFINED) {
+							previousDirection = currentDirection;
 						}
 					}
 					
@@ -248,8 +256,28 @@ package core
 				currentPointIndex++;
 			}
 			
+			//if no sections have been made, create one large one
+			if(sections.length == 0) {
+				var singleSection:Section = new Section();
+						
+				singleSection.setStartIndex(0);
+				singleSection.setEndIndex(path.getPoints().length - 1);
+				
+				
+				singleSection.setDirection(currentDirection);
+				
+				defineSectionSubslopes(path, singleSection)
+				
+				sections.addItem(singleSection);
+			}
+			
 			path.setSections(sections);
 		}
+		
+		private static function determineDirection(currentX:int, currentY:int, previousX:int, previousY:int):int 
+		{
+			return 0;
+		} 
 		
 		//Determine the size of the path
 		//i.e. the max X & Y deltas 
