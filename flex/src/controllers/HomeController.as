@@ -12,6 +12,8 @@ package controllers
 	
 	import mx.collections.ArrayCollection;
 	import mx.controls.Alert;
+	import mx.controls.Button;
+	import mx.controls.Label;
 	
 	import tools.UIHelper;
 	
@@ -32,6 +34,8 @@ package controllers
 			this.view = new HomeView();
 			UIHelper.pushView(this.view);
 			
+			this.showMessageDialog("Use your fingers to create a gesture in the pad below");
+			
 			this.attachListeners(); 
 		}
 		
@@ -43,10 +47,28 @@ package controllers
 			this.view.cnvs_gesturePad.addEventListener(Event.ENTER_FRAME, this.gestureDetector);	
 		}
 		
+		private function showMessageDialog(text:String):void
+		{
+			this.view.cnvs_gesturePad.removeAllChildren();
+			
+			var label = new Label();
+			label.text = text;
+			
+			this.view.cnvs_message.addChild(label);
+		}
+		
 		private function showSaveDialog():void
 		{
-			// Ask the user whether they want to save their gesture
-			this.view.lbl_message.text = "No such gesture detected. Do you want to create it?";
+			this.view.cnvs_gesturePad.removeAllChildren();
+			
+			var label:Label = new Label();
+			label.text = "The gesture does not exist. Do you want to create it?";
+			
+			var saveButton:Button = new Button();
+			saveButton.label = "Save Gesture!";
+			
+			this.view.cnvs_message.addChild(label);
+			this.view.cnvs_message.addChild(saveButton);
 		}
 		
 		private function startDetecting():void
