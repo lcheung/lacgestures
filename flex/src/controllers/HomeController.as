@@ -157,10 +157,10 @@ package controllers
 						var curPt:Point = this.view.cnvs_gesturePad.globalToLocal(new Point(tuioObj.x, tuioObj.y));
 						var circle:Sprite = new Sprite(); 
 			        
-			        	circle.graphics.beginFill(0xFFFFFF,0.4);
-			        	circle.graphics.drawCircle(curPt.x, curPt.y, 15);
+			        	circle.graphics.beginFill(0xCCCCCC,1);
+			        	circle.graphics.drawCircle(curPt.x, curPt.y, 8);
 			        	
-			        	  var regularObject:UIComponent;
+			        	var regularObject:UIComponent;
 			            regularObject = new UIComponent();
 			            regularObject.addChild(circle);
 			        	
