@@ -8,8 +8,8 @@ package models
 		private var startIndex:int = 0;
 		private var endIndex:int = 0;
 		private var direction:int = 0;
-		private var width:int = 0;
-		private var height:int = 0;
+		private var width:Number = 0;
+		private var height:Number = 0;
 		private var slopes:ArrayCollection = new ArrayCollection();
 			
 		public function Section()
@@ -47,7 +47,7 @@ package models
 			return this.direction;
 		}
 		
-		public function setWidth(x:int):void
+		public function setWidth(x:Number):void
 		{
 			this.width = x;
 		}
@@ -57,7 +57,7 @@ package models
 			return this.width;
 		}
 		
-		public function setHeight(y:int):void
+		public function setHeight(y:Number):void
 		{
 			this.height = y;
 		}

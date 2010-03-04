@@ -110,8 +110,6 @@ package core
 		 		error += Math.abs((baseSlopes.getItemIndex(i) as Number) - (reprodSlopes.getItemAt(i) as Number)) * DetectionEngine.SLOPE_WEIGHT;
 		 	}
 		 	
-		 	
-		 	//TODO: This needs to be scaled relative to the entire size of each respective gesture
 		 	//e.g. section width divided by total gesture width  
 		 	error += Math.abs(base.getWidth() - reprod.getWidth()) * DetectionEngine.SCALE_WEIGHT;
 		 	error += Math.abs(base.getHeight() - reprod.getHeight()) * DetectionEngine.SCALE_WEIGHT;
@@ -146,6 +144,12 @@ package core
 			smoothPath(path);
 			parsePath(path);
 			determinePathSize(path);
+			
+			for each(var section:Section in path.getSections()) {
+				determineSectionSize(path.getPoints(), section, path.getHeight(), path.getWidth());	
+			}
+			
+			
 		}
 		
 		//Remove anomalies from the path
@@ -309,18 +313,24 @@ package core
 			path.setWidth(maxX - minX);
 		}
 		
-		//Determine the size of the path
+		//Determine the size of the section as a percentage of the overall path size
 		//i.e. the max X & Y deltas 
-		private static function determineSectionSize(points:ArrayCollection, section:Section):void
+		private static function determineSectionSize(points:ArrayCollection, section:Section, pathHeight:int, pathWidth:int):void
 		{
-			var firstPoint:TouchPoint = points.getItemAt(0) as TouchPoint;
+			var startIndex:int = section.getStartIndex();
+			var endIndex:int = section.getEndIndex();
+			
+			var firstPoint:TouchPoint = points.getItemAt(startIndex) as TouchPoint;
 			
 			var maxX:int = firstPoint.getX();
 			var minX:int = firstPoint.getX();
 			var maxY:int = firstPoint.getY();
 			var minY:int = firstPoint.getY();
 						
-			for each(var point:TouchPoint in points) {
+			//for each(var point:TouchPoint in points) {
+			for(var i:int = startIndex + 1; i <= endIndex; i++) {
+				var point:TouchPoint = points.getItemAt(i);
+								
 				if(point.getX() < minX) {
 					minX = point.getX()
 				} else if(point.getX() > maxX) {
@@ -334,8 +344,8 @@ package core
 				}
 			}
 			
-			section.setWidth(maxX - minX);
-			section.setHeight(maxY - minY); 
+			section.setWidth((maxX - minX) / pathWidth);
+			section.setHeight((maxY - minY) / pathHeight); 
 		}
 		
 				
