@@ -1,26 +1,24 @@
 // ActionScript file
 package controllers
 {
-	import flash.display.Sprite;
-	import flash.geom.Point;
-	
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.events.TUIO;
 	import flash.events.TUIOObject;
 	import flash.events.TouchEvent;
+	import flash.geom.Point;
 	
 	import models.Gesture;
 	import models.Path;
 	import models.TouchPoint;
 	
-	import mx.core.UIComponent;
 	import mx.collections.ArrayCollection;
 	import mx.containers.VBox;
 	import mx.controls.Alert;
 	import mx.controls.Button;
 	import mx.controls.Label;
 	
+	import tools.GraphicsHelper;
 	import tools.UIHelper;
 	
 	import views.HomeView;
@@ -28,6 +26,9 @@ package controllers
 	public class HomeController
 	{
 		private var view:HomeView = null;
+		
+		// helper to draw the graphics onto the gesture pad
+		private var graphicsHelper:GraphicsHelper = null;
 		
 		private var isDetecting:Boolean;	
 		// map of blobId to array of paths
@@ -39,6 +40,8 @@ package controllers
 		{
 			this.view = new HomeView();
 			UIHelper.pushView(this.view);
+			
+			this.graphicsHelper = new GraphicsHelper(this.view.cnvs_gesturePad);
 			
 			this.showMessageDialog("Use your fingers to create a gesture in the pad below.");
 			
@@ -96,6 +99,8 @@ package controllers
 			this.currDetection = new Array();
 			this.isDetecting = true;
 			
+			this.graphicsHelper.clearCanvas();
+			
 			this.showMessageDialog("Detecting gesture in progress...");
 		}
 			
@@ -129,7 +134,6 @@ package controllers
 		
 		private function gestureDetector(e:Event):void
 		{
-
 			if (this.isDetecting == true) {
 				for(var i:Number=0; i<this.activeBlobIds.length; i++) {
 					var blobId:Number = Number(this.activeBlobIds.getItemAt(i));
@@ -152,19 +156,11 @@ package controllers
 										
 						this.currDetection[blobId].getPoints().addItem(touchPoint);
 						
-						
-						// "draw" the gesture on the gesture pad
-						var curPt:Point = this.view.cnvs_gesturePad.globalToLocal(new Point(tuioObj.x, tuioObj.y));
-						var circle:Sprite = new Sprite(); 
-			        
-			        	circle.graphics.beginFill(0xCCCCCC,1);
-			        	circle.graphics.drawCircle(curPt.x, curPt.y, 8);
-			        	
-			        	var regularObject:UIComponent;
-			            regularObject = new UIComponent();
-			            regularObject.addChild(circle);
-			        	
-						this.view.cnvs_gesturePad.addChild(regularObject);
+						// update the graphics on the gesture pad
+						this.graphicsHelper.drawCircle(
+							this.graphicsHelper.globalToLocal(new Point(tuioObj.x, tuioObj.y)),
+							8
+						);
 					}
 				}
 			}
