@@ -13,7 +13,7 @@ package core
 	{
 		//values used for configuring comparison
 		public static const ERROR_THRESHOLD:int = 1000;
-		public static const SLOPE_WEIGHT:int = 1;
+		public static const SLOPE_WEIGHT:int = 100;
 		public static const SCALE_WEIGHT:int = 1;
 		
 		
@@ -28,7 +28,12 @@ package core
 		 	var minError:int = 0;
 		 	var closestGesture:Gesture = null;
 		 	//get list of existing gestures
-		 	var storedGestures:ArrayCollection = new ArrayCollection();
+		 	var storedGestures:ArrayCollection = Gesture.getGesturesFromDB();
+		 	
+		 	//TODO: This is just temporary until all the proper info is stored in DB
+		 	for each(var g:Gesture in storedGestures) {
+		 		prepareGesture(g);
+		 	}
 		 	
 		 	var reprodPaths:ArrayCollection = reprod.getPaths();
 		 	var numPaths:int = reprodPaths.length;
@@ -82,9 +87,15 @@ package core
 		 	var baseSections:ArrayCollection = base.getSections();
 		 	
 		 	var numReprodSections:int = reprodSections.length;
+		 	var numBaseSections:int = baseSections.length;
 		 	 
 		 	//iterate through each section
 		 	for(var i:int = 0; i < numReprodSections; i++) {
+		 		if(i >= numBaseSections) {
+		 			//TODO: Figure out how to penalize this
+		 			error += 10000;
+		 			break;
+		 		}
 		 		error += compareSection(reprodSections.getItemAt(i) as Section, baseSections.getItemAt(i) as Section);
 		 	}
 		 	
@@ -107,9 +118,14 @@ package core
 		 	var reprodSlopes:ArrayCollection = reprod.getSlopes();
 		 	
 		 	for(var i:int = 0; i < baseSlopes.length; i++ ) {
+		 		trace("s" + i);
+		 		trace("reprod= " + (reprodSlopes.getItemAt(i) as Number));
+		 		trace("base= " + (baseSlopes.getItemAt(i) as Number));
 		 		error += Math.abs((baseSlopes.getItemIndex(i) as Number) - (reprodSlopes.getItemAt(i) as Number)) * DetectionEngine.SLOPE_WEIGHT;
 		 	}
 		 	
+		 	trace("reprod= w:" + reprod.getWidth() + ", h:" + reprod.getHeight());
+		 	trace("base= w:" + base.getWidth() + ", h:" + base.getHeight());
 		 	//e.g. section width divided by total gesture width  
 		 	error += Math.abs(base.getWidth() - reprod.getWidth()) * DetectionEngine.SCALE_WEIGHT;
 		 	error += Math.abs(base.getHeight() - reprod.getHeight()) * DetectionEngine.SCALE_WEIGHT;
@@ -303,7 +319,7 @@ package core
 				}
 				
 				if(point.getY() < minY) {
-					minX = point.getY()
+					minY = point.getY()
 				} else if(point.getY() > maxY) {
 					maxY = point.getY();
 				}
@@ -329,7 +345,7 @@ package core
 						
 			//for each(var point:TouchPoint in points) {
 			for(var i:int = startIndex + 1; i <= endIndex; i++) {
-				var point:TouchPoint = points.getItemAt(i);
+				var point:TouchPoint = points.getItemAt(i) as TouchPoint;
 								
 				if(point.getX() < minX) {
 					minX = point.getX()
@@ -344,8 +360,13 @@ package core
 				}
 			}
 			
-			section.setWidth((maxX - minX) / pathWidth);
-			section.setHeight((maxY - minY) / pathHeight); 
+			
+			trace("section");
+			trace("width: " + (maxX - minX) / (pathWidth as Number));
+			trace("height: " + (maxY - minY) / (pathHeight as Number));
+			
+			section.setWidth((maxX - minX) / (pathWidth as Number));
+			section.setHeight((maxY - minY) / (pathHeight as Number)); 
 		}
 		
 				

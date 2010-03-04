@@ -52,7 +52,7 @@ package models
 			this.width = x;
 		}
 		
-		public function getWidth():int
+		public function getWidth():Number
 		{
 			return this.width;
 		}
@@ -62,7 +62,7 @@ package models
 			this.height = y;
 		}
 		
-		public function getHeight():int
+		public function getHeight():Number
 		{
 			return this.height;
 		}
