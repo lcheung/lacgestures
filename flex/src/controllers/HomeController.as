@@ -21,6 +21,8 @@ package controllers
 	import tools.GraphicsHelper;
 	import tools.UIHelper;
 	
+	import core.DetectionEngine;
+	
 	import views.HomeView;
 	
 	public class HomeController
@@ -114,14 +116,12 @@ package controllers
 				detectedGesture.getPaths().addItem(path);
 			}
 			
-			/*
+			
 			//perform analysis on gesture so that can be stored too
 			DetectionEngine.prepareGesture(detectedGesture);
 			
 			var matchedGesture:Gesture = DetectionEngine.matchGesture(detectedGesture);
-			*/
-			
-			var matchedGesture:Gesture = null;
+		
 			
 			if (matchedGesture != null) {
 				// match has been found
@@ -157,9 +157,15 @@ package controllers
 						this.currDetection[blobId].getPoints().addItem(touchPoint);
 						
 						// update the graphics on the gesture pad
-						this.graphicsHelper.drawCircle(
-							this.graphicsHelper.globalToLocal(new Point(tuioObj.x, tuioObj.y)),
-							8
+						
+						// get the second last point (which is the point before the current one)
+						var prevTouchPoint:TouchPoint = this.currDetection[blobId].getPoints().getItemAt(
+								this.currDetection[blobId].getPoints().length-2
+							);
+						
+						this.graphicsHelper.drawLine(
+							this.graphicsHelper.globalToLocal(new Point(prevTouchPoint.getX(), prevTouchPoint.getY())),
+							this.graphicsHelper.globalToLocal(new Point(touchPoint.getX(), touchPoint.getY()))
 						);
 					}
 				}
