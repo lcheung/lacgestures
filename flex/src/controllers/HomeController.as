@@ -151,6 +151,20 @@ package controllers
 						touchPoint.setTimestamp(new Date().time);
 										
 						this.currDetection[blobId].getPoints().addItem(touchPoint);
+						
+						
+						// "draw" the gesture on the gesture pad
+						var curPt:Point = this.view.cnvs_gesturePad.globalToLocal(new Point(tuioObj.x, tuioObj.y));
+						var circle:Sprite = new Sprite(); 
+			        
+			        	circle.graphics.beginFill(0xFFFFFF,0.4);
+			        	circle.graphics.drawCircle(curPt.x, curPt.y, 15);
+			        	
+			        	  var regularObject:UIComponent;
+			            regularObject = new UIComponent();
+			            regularObject.addChild(circle);
+			        	
+						this.view.cnvs_gesturePad.addChild(regularObject);
 					}
 				}
 			}
@@ -161,21 +175,7 @@ package controllers
 		private function gesturePadTouchDown(e:TouchEvent):void
 		{
 			this.activeBlobIds.addItem(e.ID);
-			
-			var curPt:Point = this.view.cnvs_gesturePad.globalToLocal(new Point(e.stageX, e.stageY));
-			var circle:Sprite = new Sprite(); 
-        
-        	circle.graphics.beginFill(0xFFFFFF,0.4);
-        	circle.graphics.drawCircle(curPt.x, curPt.y, 15);
-        	
-        	  var regularObject:UIComponent;
-            regularObject = new UIComponent();
-            regularObject.addChild(circle);
-        	
-			this.view.cnvs_gesturePad.addChild(regularObject);
-			
-			
-			
+						
 			// start detecting once a finger has been pressed down
 			if (this.isDetecting == false) {
 				this.startDetecting();
