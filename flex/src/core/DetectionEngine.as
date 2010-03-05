@@ -112,6 +112,10 @@ package core
 		 	 
 		 	/* look at direction, slopes, change in slopes, length
 		 	 */
+		 	 
+		 	 if(reprod.getDirection() != base.getDirection()) {
+		 	 	error += 500;
+		 	 }
 		 	
 		 	//compare slopes at each defined interval 
 		 	var baseSlopes:ArrayCollection = base.getSlopes();
