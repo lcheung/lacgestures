@@ -15,6 +15,7 @@ package core
 		public static const ERROR_THRESHOLD:int = 1000;
 		public static const SLOPE_WEIGHT:int = 50;
 		public static const SCALE_WEIGHT:int = 25;
+		public static const SMALL_SECTION_SIZE = 10; //the maximum size a section can be to be a candidate for being ignored
 		
 		
 		/* Comparison
@@ -116,7 +117,6 @@ package core
 			 	}
 		 	}
 		 	
-		 	//TODO: What if the number of sections differs?
 		 	//check if the surplus sections are significant in size, penalize accordingly
 		 	for(var i:int = reprodIndex; i < numReprodSections; i++) {
 		 		error += assessSectionSignificance(reprodSections.getItemAt(i) as Section);
@@ -131,9 +131,9 @@ package core
 		 
 		 //Check how big the section is to know how important it is
 		 //use when calculating stray sections
-		 private static function assessSectionSignificance(section:Section): int
+		 private static function assessSectionSignificance(section:Section):int
 		 {
-		 	return 0;
+		 	return determineSectionLength(section) * SCALE_WEIGHT;
 		 }
 		 
 		 //Check to see if the two sections are even suitable for error assessment
@@ -143,10 +143,25 @@ package core
 		 //return 0 if both valid
 		 private static function prelimCompareSections(reprod:Section, base:Section):int
 		 {
+		 	//in order to rule a section out, only one of the two can be small
+		 	//approximate section path length as diagonal
+		 	var reprodLength:Number = determineSectionLength(reprod);
+		 	var baseLength:Number = determineSectionLength(base);
+		 	
+		 	if(reprodLength > SMALL_SECTION_SIZE && baseLength <= SMALL_SECTION_SIZE) {
+		 		return -1;
+		 	} else if(reprodLength <= SMALL_SECTION_SIZE && baseLength > SMALL_SECTION_SIZE) {
+		 		return 1;
+		 	}
 		 	
 		 	return 0;
 		 }
 		 
+		 //determine approximate length of a section (it's diagonal length)
+		 private static function determineSectionLength(section:Section):Number
+		 {
+		 	return Math.sqrt(Math.pow(section.getHeight(), 2) + Math.pow(section.getWidth(), 2));
+		 }
 		 
 		 //Compare two sections
 		 private static function compareSection(reprod:Section, base:Section):int
