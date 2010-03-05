@@ -137,7 +137,9 @@ package controllers
 						// first point, we simply draw a circle. After that
 						// we begin drawing a line
 						if (i==0) {
-							this.graphicsHelper.drawCircle(matchedPath.getPoints().getItemAt(i).toPoint(), 8, 0xFF0000);
+							var point:Point = matchedPath.getPoints().getItemAt(i).toPoint();
+							point = this.graphicsHelper.globalToLocal(point);
+							this.graphicsHelper.drawCircle(point, 8, 0xFF0000);
 						} else {
 							var prevPoint:Point = matchedPath.getPoints().getItemAt(i-1).toPoint();
 							prevPoint = this.graphicsHelper.globalToLocal(prevPoint);
