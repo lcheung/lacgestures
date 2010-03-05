@@ -58,7 +58,7 @@ package controllers
 			this.view.cnvs_gesturePad.addEventListener(Event.ENTER_FRAME, this.gestureDetector);
 
 			// event listener for when they drag a finger off the gesture pad
-			this.view.addEventListener(TouchEvent.MOUSE_OVER, this.gesturePadDragOut);	
+			this.view.addEventListener(TouchEvent.MOUSE_DOWN, this.gesturePadDragOut);	
 		}
 		
 		private function showMessageDialog(text:String):void
