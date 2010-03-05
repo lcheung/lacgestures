@@ -37,6 +37,8 @@ package tools
 			line.graphics.lineStyle(thickness,color,alpha);
 			line.graphics.moveTo(startPoint.x, endPoint.y);
 			line.graphics.lineTo(endPoint.x, endPoint.y);
+			
+			this.addSpriteToCanvas(line);
 		}
 		
 		public function globalToLocal(point:Point):Point
