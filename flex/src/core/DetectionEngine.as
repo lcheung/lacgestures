@@ -429,11 +429,18 @@ package core
 			
 			
 			trace("section");
+			trace("width: " + (maxX - minX));
+			trace("height: " + (maxY - minY));
+			
+			section.setWidth(maxX - minX);
+			section.setHeight(maxY - minY);
+			/*
 			trace("width: " + (maxX - minX) / (pathWidth as Number));
 			trace("height: " + (maxY - minY) / (pathHeight as Number));
 			
 			section.setWidth((maxX - minX) / (pathWidth as Number));
-			section.setHeight((maxY - minY) / (pathHeight as Number)); 
+			section.setHeight((maxY - minY) / (pathHeight as Number));
+			*/ 
 		}
 		
 				
