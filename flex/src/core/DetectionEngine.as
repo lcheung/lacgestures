@@ -13,8 +13,9 @@ package core
 	{
 		//values used for configuring comparison
 		public static const ERROR_THRESHOLD:int = 1000;
-		public static const SLOPE_WEIGHT:int = 100;
-		public static const SCALE_WEIGHT:int = 1;
+		public static const SLOPE_WEIGHT:int = 50;
+		public static const SCALE_WEIGHT:int = 25;
+		public static const SMALL_SECTION_SIZE:Number = 0.1; //the maximum size a section can be to be a candidate for being ignored
 		
 		
 		/* Comparison
@@ -47,6 +48,7 @@ package core
 		 	for each(var baseGesture:Gesture in storedGestures) {
 		 		if(baseGesture.getPaths().length != numPaths) {
 		 			//TODO: Remove these gestures from ones being compared
+		 			
 		 		}
 		 	}
 		 	
@@ -88,19 +90,80 @@ package core
 		 	
 		 	var numReprodSections:int = reprodSections.length;
 		 	var numBaseSections:int = baseSections.length;
+		 	
+		 	//used in case where a section should be ignored
+		 	var reprodIndex:int = 0;
+		 	var baseIndex:int = 0;
 		 	 
 		 	//iterate through each section
-		 	for(var i:int = 0; i < numReprodSections; i++) {
-		 		if(i >= numBaseSections) {
-		 			//TODO: Figure out how to penalize this
-		 			error += 10000;
-		 			break;
-		 		}
-		 		error += compareSection(reprodSections.getItemAt(i) as Section, baseSections.getItemAt(i) as Section);
+		 	//for(var i:int = 0; i < numReprodSections; i++) {
+		 	while(reprodIndex < numReprodSections && baseIndex < numBaseSections) {
+		 		
+		 		var reprodSection:Section = reprodSections.getItemAt(reprodIndex) as Section;
+		 		var baseSection:Section = baseSections.getItemAt(baseIndex) as Section;
+		 		
+		 		//TODO: ignoreSection should be an enum		 		 				 		
+		 		var ignoreSection:int = prelimCompareSections(reprodSection, baseSection);
+		 		
+		 		if(ignoreSection == 0) {
+		 			//sections are adequately matched so compare them
+			 		error += compareSection(reprodSection, baseSection);
+			 		reprodIndex++;
+			 		baseIndex++;
+			 	} else if(ignoreSection == -1) {
+			 		baseIndex++;
+			 	} else if(ignoreSection == 1) {
+			 		reprodIndex++;
+			 	}
 		 	}
 		 	
+		 	//check if the surplus sections are significant in size, penalize accordingly
+		 	for(var i:int = reprodIndex; i < numReprodSections; i++) {
+		 		error += assessSectionSignificance(reprodSections.getItemAt(i) as Section);
+		 	}
+		 	
+		 	for(var j:int = baseIndex; j < numBaseSections; j++) {
+		 		error += assessSectionSignificance(baseSections.getItemAt(j) as Section);
+		 	}
+		 		
 		 	return error;
 		 } 
+		 
+		 //Check how big the section is to know how important it is
+		 //use when calculating stray sections
+		 private static function assessSectionSignificance(section:Section):int
+		 {
+		 	return determineSectionLength(section) * SCALE_WEIGHT;
+		 }
+		 
+		 //Check to see if the two sections are even suitable for error assessment
+		 //i.e. are they small imperfect sections that should be ignored?
+		 //return 1 if reprod is illegitimate
+		 //return -1 if base is illegitimate
+		 //return 0 if both valid
+		 private static function prelimCompareSections(reprod:Section, base:Section):int
+		 {
+		 	//in order to rule a section out, only one of the two can be small
+		 	//approximate section path length as diagonal
+		 	var reprodLength:Number = determineSectionLength(reprod);
+		 	var baseLength:Number = determineSectionLength(base);
+		 	
+		 	if(reprodLength > SMALL_SECTION_SIZE && baseLength <= SMALL_SECTION_SIZE) {
+		 		return -1;
+		 	} else if(reprodLength <= SMALL_SECTION_SIZE && baseLength > SMALL_SECTION_SIZE) {
+		 		return 1;
+		 	}
+		 	
+		 	return 0;
+		 }
+		 
+		 //determine approximate length of a section (it's diagonal length)
+		 private static function determineSectionLength(section:Section):Number
+		 {
+		 	trace("h^2: " + Math.pow(section.getHeight(), 2) + " w^2:" + Math.pow(section.getWidth(), 2));
+		 	trace("len: " + Math.sqrt(Math.pow(section.getHeight(), 2) + Math.pow(section.getWidth(), 2)));
+		 	return Math.sqrt(Math.pow(section.getHeight(), 2) + Math.pow(section.getWidth(), 2));
+		 }
 		 
 		 //Compare two sections
 		 private static function compareSection(reprod:Section, base:Section):int
@@ -366,11 +429,18 @@ package core
 			
 			
 			trace("section");
+			trace("width: " + (maxX - minX));
+			trace("height: " + (maxY - minY));
+			
+			section.setWidth(maxX - minX);
+			section.setHeight(maxY - minY);
+			/*
 			trace("width: " + (maxX - minX) / (pathWidth as Number));
 			trace("height: " + (maxY - minY) / (pathHeight as Number));
 			
 			section.setWidth((maxX - minX) / (pathWidth as Number));
-			section.setHeight((maxY - minY) / (pathHeight as Number)); 
+			section.setHeight((maxY - minY) / (pathHeight as Number));
+			*/ 
 		}
 		
 				
