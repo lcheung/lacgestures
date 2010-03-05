@@ -55,7 +55,10 @@ package controllers
 			//attach event listeners
 			this.view.cnvs_gesturePad.addEventListener(TouchEvent.MOUSE_DOWN, this.gesturePadTouchDown);
 			this.view.cnvs_gesturePad.addEventListener(TouchEvent.MOUSE_UP, this.gesturePadTouchOff);
-			this.view.cnvs_gesturePad.addEventListener(Event.ENTER_FRAME, this.gestureDetector);	
+			this.view.cnvs_gesturePad.addEventListener(Event.ENTER_FRAME, this.gestureDetector);
+			
+			// event listener for when they drag a finger off the gesture pad
+			this.view.cnvs_gesturePad.addEventListener(TouchEvent.MOUSE_OUT, this.gesturePadDragOut);	
 		}
 		
 		private function showMessageDialog(text:String):void
@@ -228,6 +231,14 @@ package controllers
 			if (this.activeBlobIds.length == 0) {
 				this.finishDetecting();
 			}
+		}
+		
+		// triggerred if they drag a finger off the gesture pad
+		private function gesturePadDragOut(e:TouchEvent):void
+		{
+			// end the gesture if they drag a finger off the pad.	
+			this.activeBlobIds.removeAll();
+			this.finishDetecting();	
 		}
 	}
 }
