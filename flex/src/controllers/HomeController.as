@@ -132,11 +132,11 @@ package controllers
 				
 				// draw the gesture
 				for each(var matchedPath:Path in matchedGesture.getPaths()) {
-					for (var i:int=0; i<matchedPath.getPoints().length; i++) {
+					for (var i:int=1; i<matchedPath.getPoints().length; i++) {
 						
-						var start:Point = matchedPath.getPoints().getItemAt(i-2).toPoint();
+						var start:Point = matchedPath.getPoints().getItemAt(i-1).toPoint();
 						start = this.graphicsHelper.globalToLocal(start);
-						var end:Point = matchedPath.getPoints().getItemAt(i-1).toPoint();
+						var end:Point = matchedPath.getPoints().getItemAt(i).toPoint();
 						end = this.graphicsHelper.globalToLocal(end);
 						
 						this.graphicsHelper.drawLine(start, end, 8, 0xFF0000, 1); 
@@ -188,7 +188,7 @@ package controllers
 							var end:Point = touchPoint.toPoint();
 							end = this.graphicsHelper.globalToLocal(end);
 							
-							this.graphicsHelper.drawLine(start, end, 8, 0x000000);		
+							this.graphicsHelper.drawLine(start, end, 8, 0xffffff);		
 		
 						}
 					}
