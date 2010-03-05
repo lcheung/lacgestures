@@ -1,6 +1,8 @@
 // ActionScript file
 package controllers
 {
+	import core.DetectionEngine;
+	
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.events.TUIO;
@@ -20,8 +22,6 @@ package controllers
 	
 	import tools.GraphicsHelper;
 	import tools.UIHelper;
-	
-	import core.DetectionEngine;
 	
 	import views.HomeView;
 	
@@ -156,17 +156,23 @@ package controllers
 										
 						this.currDetection[blobId].getPoints().addItem(touchPoint);
 						
-						// update the graphics on the gesture pad
-						
-						// get the second last point (which is the point before the current one)
-						var prevTouchPoint:TouchPoint = this.currDetection[blobId].getPoints().getItemAt(
+						// Update the graphics on the gesture pad
+						if (this.currDetection[blobId].getPoints().length > 1) {
+							
+							// get the previous touch point
+							var prevTouchPoint:TouchPoint = this.currDetection[blobId].getPoints().getItemAt(
 								this.currDetection[blobId].getPoints().length-2
 							);
-						
-						this.graphicsHelper.drawLine(
-							this.graphicsHelper.globalToLocal(new Point(prevTouchPoint.getX(), prevTouchPoint.getY())),
-							this.graphicsHelper.globalToLocal(new Point(touchPoint.getX(), touchPoint.getY()))
-						);
+							
+							// create the start and end points, convert the global coordinates to local
+							var start:Point = new Point(prevTouchPoint.getX(), prevTouchPoint.getY());
+							start = this.graphicsHelper.globalToLocal(start);
+							var end:Point = new Point(touchPoint.getX(), touchPoint.getY());
+							end = this.graphicsHelper.globalToLocal(end);
+							
+							this.graphicsHelper.drawLine(start, end);		
+		
+						}
 					}
 				}
 			}
