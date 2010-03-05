@@ -139,7 +139,7 @@ package controllers
 						if (i==0) {
 							var point:Point = matchedPath.getPoints().getItemAt(i).toPoint();
 							point = this.graphicsHelper.globalToLocal(point);
-							this.graphicsHelper.drawCircle(point, 8, 0xFF0000);
+							this.graphicsHelper.drawCircle(point, 16, 0xFF0000);
 						} else {
 							var prevPoint:Point = matchedPath.getPoints().getItemAt(i-1).toPoint();
 							prevPoint = this.graphicsHelper.globalToLocal(prevPoint);
