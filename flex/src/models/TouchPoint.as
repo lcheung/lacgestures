@@ -1,5 +1,7 @@
 package models
 {
+	import flash.geom.Point;
+	
 	public class TouchPoint
 	{
 		private var x:int = 0;
@@ -38,6 +40,12 @@ package models
 		public function getTimestamp():int
 		{
 			return this.timestamp;
+		}
+		
+		
+		public function toPoint():Point
+		{
+			return new Point(this.x, this.y);	
 		}
 		
 	}

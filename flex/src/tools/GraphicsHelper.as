@@ -30,11 +30,11 @@ package tools
         	this.addSpriteToCanvas(circle);
 		}
 		
-		public function drawLine(startPoint:Point, endPoint:Point):void
+		public function drawLine(startPoint:Point, endPoint:Point, thickness:int=8, color:uint=0x000000, alpha:int=1):void
 		{
 			var line:Sprite = new Sprite();
 			
-			line.graphics.lineStyle(1,0xFFFFFF,1);
+			line.graphics.lineStyle(thickness,color,alpha);
 			line.graphics.moveTo(startPoint.x, endPoint.y);
 			line.graphics.lineTo(endPoint.x, endPoint.y);
 		}

@@ -110,12 +110,13 @@ package controllers
 		{
 			this.isDetecting = false;
 			
+			this.showMessageDialog("Analyzing gesture...");
+			
 			var detectedGesture:Gesture = new Gesture();
 			
 			for each(var path:Path in this.currDetection) {
 				detectedGesture.getPaths().addItem(path);
 			}
-			
 			
 			//perform analysis on gesture so that can be stored too
 			DetectionEngine.prepareGesture(detectedGesture);
@@ -128,6 +129,21 @@ package controllers
 			if (matchedGesture != null) {
 				// match has been found
 				this.showMessageDialog("Gesture Found!");
+				
+				// draw the gesture
+				for each(var matchedPath:Path in matchedGesture.getPaths()) {
+					for (var i:int=0; i<matchedPath.getPoints().length; i++) {
+						
+						var start:Point = matchedPath.getPoints().getItemAt(i-2).toPoint();
+						start = this.graphicsHelper.globalToLocal(start);
+						var end:Point = matchedPath.getPoints().getItemAt(i-1).toPoint();
+						end = this.graphicsHelper.globalToLocal(end);
+						
+						this.graphicsHelper.drawLine(start, end, 8, 0xFF0000, 1); 
+					}
+				} 
+				
+				
 			} else {
 				// If no match was found, ask if they want to save the new one
 				this.showSaveDialog();
@@ -167,12 +183,12 @@ package controllers
 							);
 							
 							// create the start and end points, convert the global coordinates to local
-							var start:Point = new Point(prevTouchPoint.getX(), prevTouchPoint.getY());
+							var start:Point = prevTouchPoint.toPoint();
 							start = this.graphicsHelper.globalToLocal(start);
-							var end:Point = new Point(touchPoint.getX(), touchPoint.getY());
+							var end:Point = touchPoint.toPoint();
 							end = this.graphicsHelper.globalToLocal(end);
 							
-							this.graphicsHelper.drawLine(start, end);		
+							this.graphicsHelper.drawLine(start, end, 8, 0x000000);		
 		
 						}
 					}
