@@ -15,7 +15,7 @@ package core
 		public static const ERROR_THRESHOLD:int = 1000;
 		public static const SLOPE_WEIGHT:int = 50;
 		public static const SCALE_WEIGHT:int = 25;
-		public static const SMALL_SECTION_SIZE = 10; //the maximum size a section can be to be a candidate for being ignored
+		public static const SMALL_SECTION_SIZE:Number = 0.1; //the maximum size a section can be to be a candidate for being ignored
 		
 		
 		/* Comparison
@@ -160,6 +160,8 @@ package core
 		 //determine approximate length of a section (it's diagonal length)
 		 private static function determineSectionLength(section:Section):Number
 		 {
+		 	trace("h^2: " + Math.pow(section.getHeight(), 2) + " w^2:" + Math.pow(section.getWidth(), 2));
+		 	trace("len: " + Math.sqrt(Math.pow(section.getHeight(), 2) + Math.pow(section.getWidth(), 2)));
 		 	return Math.sqrt(Math.pow(section.getHeight(), 2) + Math.pow(section.getWidth(), 2));
 		 }
 		 
