@@ -118,11 +118,11 @@ package controllers
 			
 			
 			//perform analysis on gesture so that can be stored too
-			//DetectionEngine.prepareGesture(detectedGesture);
+			DetectionEngine.prepareGesture(detectedGesture);
 			
-			//var matchedGesture:Gesture = DetectionEngine.matchGesture(detectedGesture);
+			var matchedGesture:Gesture = DetectionEngine.matchGesture(detectedGesture);
 			
-			var matchedGesture:Gesture = null;
+			//var matchedGesture:Gesture = null;
 		
 			
 			if (matchedGesture != null) {
