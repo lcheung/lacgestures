@@ -16,7 +16,6 @@ package controllers
 	
 	import mx.collections.ArrayCollection;
 	import mx.containers.VBox;
-	import mx.controls.Alert;
 	import mx.controls.Button;
 	import mx.controls.Label;
 	
@@ -58,6 +57,19 @@ package controllers
 			this.view.cnvs_gesturePad.addEventListener(TouchEvent.MOUSE_DOWN, this.gesturePadTouchDown);
 			this.view.cnvs_gesturePad.addEventListener(TouchEvent.MOUSE_UP, this.gesturePadTouchOff);
 			this.view.cnvs_gesturePad.addEventListener(Event.ENTER_FRAME, this.gestureDetector);
+		}
+		
+		// checks whether a given point is out of bounds
+		// i.e: whether the finger is off the gesture pad
+		// NOTE: point should be global coordinates
+		private function isPointOutOfBounds(point:Point):Boolean
+		{
+			var local:Point = this.view.cnvs_gesturePad.globalToLocal(point);
+			if (local.x < 0 || local.x > this.view.cnvs_gesturePad.width 
+					|| local.y < 0 || local.y > this.view.cnvs_gesturePad.height) {
+				return true;	
+			}	
+			return false;
 		}
 		
 		private function showMessageDialog(text:String):void
@@ -165,7 +177,7 @@ package controllers
 		}
 		
 		private function gestureDetector(e:Event):void
-		{
+		{		
 			if (this.isDetecting == true) {
 				for(var i:Number=0; i<this.activeBlobIds.length; i++) {
 					var blobId:Number = Number(this.activeBlobIds.getItemAt(i));
@@ -174,6 +186,13 @@ package controllers
 					var tuioObj:TUIOObject = TUIO.getObjectById(blobId);
 					
 					if (tuioObj != null) {
+						
+						// check if the gesture is out of bounds
+						if (this.isPointOutOfBounds(new Point(tuioObj.x,tuioObj.y)) == true) {
+							this.gesturePadOutOfBounds();
+							return;
+						}
+						
 						// if current blobId does not have a path instantiated
 						// in the current detection, make one.
 						if (this.currDetection[blobId] == null) {
@@ -225,15 +244,24 @@ package controllers
 		// triggered when a finger is lifted off the gesture pad
 		private function gesturePadTouchOff(e:TouchEvent):void
 		{
-			this.activeBlobIds.removeItemAt(
-				this.activeBlobIds.getItemIndex(e.ID)
-			);
+			if (this.activeBlobIds.contains(e.ID) == true) {
+				this.activeBlobIds.removeItemAt(
+					this.activeBlobIds.getItemIndex(e.ID)
+				);
+				
+				// finish detecting when no more fingers are on
+				// the gesture pad
+				if (this.activeBlobIds.length == 0) {
+					this.finishDetecting();
+				}
+			}		
+		}
+		
+		private function gesturePadOutOfBounds():void
+		{
+			this.activeBlobIds.removeAll();
 			
-			// finish detecting when no more fingers are on
-			// the gesture pad
-			if (this.activeBlobIds.length == 0) {
-				this.finishDetecting();
-			}
+			this.finishDetecting();
 		}
 	}
 }
