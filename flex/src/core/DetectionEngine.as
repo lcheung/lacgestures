@@ -16,8 +16,9 @@ package core
 		public static const SLOPE_WEIGHT:int = 50;
 		public static const SCALE_WEIGHT:int = 5;
 		public static const UNMATCHED_SCALE_WEIGHT:int = 25;
+		public static const WRONG_DIRECTION_PENALTY:int = 1500; //error to apply for conflicting section directions
 		public static const SMALL_SECTION_SIZE:int = 10; //the maximum size a section can be to be a candidate for being ignored
-		
+		public static const MAX_DIVISION_FACTOR:Number = 3.0; //the maximum ratio that the path error can be scaled down by
 		
 		/* Comparison
 		 * The functions related to comparing a reproduced gesture
@@ -71,8 +72,12 @@ package core
 		 	for each(var gesture:Gesture in storedGestures) {
 		 		var gestureError:int = 0;
 		 		
+		 		trace("=== GESTURE ===");
+		 		trace("===============");
+		 		
 		 		//TODO: In the future, match the paths to be compared based on outcome from correlatePaths()
 		 		for(var i:int = 0; i < numPaths; i++) {
+		 			trace("Path " + i + ":")
 			 		gestureError += comparePaths(reprodPaths.getItemAt(i) as Path, gesture.getPaths().getItemAt(i) as Path);
 			 	}
 			 	
@@ -116,7 +121,7 @@ package core
 		 	//iterate through each section
 		 	//for(var i:int = 0; i < numReprodSections; i++) {
 		 	while(reprodIndex < numReprodSections && baseIndex < numBaseSections) {
-		 		
+		 		trace("Section r: " + reprodIndex + " b: " + baseIndex); 
 		 		var reprodSection:Section = reprodSections.getItemAt(reprodIndex) as Section;
 		 		var baseSection:Section = baseSections.getItemAt(baseIndex) as Section;
 		 		
@@ -153,10 +158,17 @@ package core
 		 //to reduce error compounding on large paths
 		 private static function normalizePathError(error:int, path:Path): int
 		 {
+		 	
 		 	//TODO: should also be impacted by overall path size in some way
 		 	
 		 	//look at the number of sections
-		 	error = error / path.getSections().length;
+		 	var divisionFactor:Number = path.getSections().length; //how much to cut the error down by
+		 	
+		 	if(divisionFactor > MAX_DIVISION_FACTOR) {
+		 		divisionFactor = MAX_DIVISION_FACTOR;
+		 	}
+		 	
+		 	error = error / divisionFactor;
 		 	
 		 	return error;
 		 }
@@ -180,6 +192,8 @@ package core
 		 	var reprodLength:Number = determineSectionLength(reprod);
 		 	var baseLength:Number = determineSectionLength(base);
 
+			trace("section lengths r: " + reprodLength + " b: " + baseLength);
+
 			//check to see if the lengths are quite different relative to each other
 		 	if(reprodLength / baseLength > 3.0 || baseLength / reprodLength > 3.0) {
 		 		//then check to see if either of the lengths are small
@@ -196,8 +210,8 @@ package core
 		 //determine approximate length of a section (it's diagonal length)
 		 private static function determineSectionLength(section:Section):Number
 		 {
-		 	trace("h^2: " + Math.pow(section.getHeight(), 2) + " w^2:" + Math.pow(section.getWidth(), 2));
-		 	trace("len: " + Math.sqrt(Math.pow(section.getHeight(), 2) + Math.pow(section.getWidth(), 2)));
+		 	//trace("h^2: " + Math.pow(section.getHeight(), 2) + " w^2:" + Math.pow(section.getWidth(), 2));
+		 	//trace("len: " + Math.sqrt(Math.pow(section.getHeight(), 2) + Math.pow(section.getWidth(), 2)));
 		 	return Math.sqrt(Math.pow(section.getHeight(), 2) + Math.pow(section.getWidth(), 2));
 		 }
 		 
@@ -211,13 +225,13 @@ package core
 		 	 
 		 	/* look at direction, slopes, change in slopes, length
 		 	 */
-		 	 
+		 	 trace("r dir: " + reprod.getDirection());
+		 	 trace("b dir: " + base.getDirection());
+		 	 	
 		 	 if(reprod.getDirection() != base.getDirection()) {
 		 	 	
-		 	 	trace("reprod dir: " + reprod.getDirection());
-		 	 	trace("base dir: " + base.getDirection());
 		 	 	//TODO: can't simply rule it out... need to check for adjacency and slope
-		 	 	error += 1000;
+		 	 	error += WRONG_DIRECTION_PENALTY;
 		 	 }
 		 	
 		 	//compare slopes at each defined interval 
@@ -225,7 +239,7 @@ package core
 		 	var reprodSlopes:ArrayCollection = reprod.getSlopes();
 		 	
 		 	for(var i:int = 0; i < baseSlopes.length; i++ ) {
-		 		trace("s" + i);
+		 		trace("slope " + i);
 		 		trace("reprod= " + (reprodSlopes.getItemAt(i) as Number));
 		 		trace("base= " + (baseSlopes.getItemAt(i) as Number));
 		 		error += Math.abs((baseSlopes.getItemIndex(i) as Number) - (reprodSlopes.getItemAt(i) as Number)) * DetectionEngine.SLOPE_WEIGHT;
@@ -237,6 +251,8 @@ package core
 		 	error += Math.abs(determineSectionLength(base) - determineSectionLength(reprod));
 		 	//error += Math.abs(base.getWidth() - reprod.getWidth()) * DetectionEngine.SCALE_WEIGHT;
 		 	//error += Math.abs(base.getHeight() - reprod.getHeight()) * DetectionEngine.SCALE_WEIGHT;
+		 	
+		 	trace("section error: " + error);
 		 	
 		 	return error;
 		 }
