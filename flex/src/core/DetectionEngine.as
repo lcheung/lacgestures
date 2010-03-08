@@ -14,7 +14,8 @@ package core
 		//values used for configuring comparison
 		public static const ERROR_THRESHOLD:int = 1000;
 		public static const SLOPE_WEIGHT:int = 50;
-		public static const SCALE_WEIGHT:int = 1;
+		public static const SCALE_WEIGHT:int = 5;
+		public static const UNMATCHED_SCALE_WEIGHT:int = 25;
 		public static const SMALL_SECTION_SIZE:int = 10; //the maximum size a section can be to be a candidate for being ignored
 		
 		
@@ -46,12 +47,24 @@ package core
 		 	}*/
 		 	
 		 	//remove any gestures that don't have the same number of points
+		 	/*
 		 	for each(var baseGesture:Gesture in storedGestures) {
 		 		if(baseGesture.getPaths().length != numPaths) {
 		 			//TODO: Remove these gestures from ones being compared
+		 			
 		 		}
+		 	
+		 	}
+		 	*/
+		 	
+			for(var j:int = storedGestures.length - 1; j >= 0; j--) {
+				var baseGesture:Gesture = storedGestures.getItemAt(j) as Gesture;
+			 	if(baseGesture.getPaths().length != numPaths) {
+			 		storedGestures.removeItemAt(j);	
+			 	}
 		 	}
 		 	
+		 				 	
 		 	//create a 1-to-1 mapping of the base and reproduced gesture paths
 		 	//correlatePaths();
 		 	
@@ -65,6 +78,8 @@ package core
 			 	
 			 	//look at average error overall paths, not total error
 			 	gestureError = gestureError / numPaths;
+			 	
+			 	trace("GESTURE ERROR: " + gestureError);
 			 	
 			 	if(gestureError < minError || closestGesture == null) {
 			 		minError = gestureError;
@@ -128,15 +143,29 @@ package core
 		 	for(var j:int = baseIndex; j < numBaseSections; j++) {
 		 		error += assessSectionSignificance(baseSections.getItemAt(j) as Section);
 		 	}
+		 	
+		 	
 		 		
-		 	return error;
+		 	return normalizePathError(error, reprod);
 		 } 
+		 
+		 //adjust the path error based on the path characteristics
+		 //to reduce error compounding on large paths
+		 private static function normalizePathError(error:int, path:Path): int
+		 {
+		 	//TODO: should also be impacted by overall path size in some way
+		 	
+		 	//look at the number of sections
+		 	error = error / path.getSections().length;
+		 	
+		 	return error;
+		 }
 		 
 		 //Check how big the section is to know how important it is
 		 //use when calculating stray sections
 		 private static function assessSectionSignificance(section:Section):int
 		 {
-		 	return determineSectionLength(section) * SCALE_WEIGHT;
+		 	return determineSectionLength(section) * UNMATCHED_SCALE_WEIGHT;
 		 }
 		 
 		 //Check to see if the two sections are even suitable for error assessment
@@ -150,11 +179,15 @@ package core
 		 	//approximate section path length as diagonal
 		 	var reprodLength:Number = determineSectionLength(reprod);
 		 	var baseLength:Number = determineSectionLength(base);
-		 	
-		 	if(reprodLength > SMALL_SECTION_SIZE && baseLength <= SMALL_SECTION_SIZE) {
-		 		return -1;
-		 	} else if(reprodLength <= SMALL_SECTION_SIZE && baseLength > SMALL_SECTION_SIZE) {
-		 		return 1;
+
+			//check to see if the lengths are quite different relative to each other
+		 	if(reprodLength / baseLength > 3.0 || baseLength / reprodLength > 3.0) {
+		 		//then check to see if either of the lengths are small
+			 	if(reprodLength > SMALL_SECTION_SIZE && baseLength <= SMALL_SECTION_SIZE) {
+			 		return -1;
+			 	} else if(reprodLength <= SMALL_SECTION_SIZE && baseLength > SMALL_SECTION_SIZE) {
+			 		return 1;
+			 	}
 		 	}
 		 	
 		 	return 0;
@@ -180,7 +213,11 @@ package core
 		 	 */
 		 	 
 		 	 if(reprod.getDirection() != base.getDirection()) {
-		 	 	error += 500;
+		 	 	
+		 	 	trace("reprod dir: " + reprod.getDirection());
+		 	 	trace("base dir: " + base.getDirection());
+		 	 	//TODO: can't simply rule it out... need to check for adjacency and slope
+		 	 	error += 1000;
 		 	 }
 		 	
 		 	//compare slopes at each defined interval 
@@ -197,8 +234,9 @@ package core
 		 	trace("reprod= w:" + reprod.getWidth() + ", h:" + reprod.getHeight());
 		 	trace("base= w:" + base.getWidth() + ", h:" + base.getHeight());
 		 	//e.g. section width divided by total gesture width  
-		 	error += Math.abs(base.getWidth() - reprod.getWidth()) * DetectionEngine.SCALE_WEIGHT;
-		 	error += Math.abs(base.getHeight() - reprod.getHeight()) * DetectionEngine.SCALE_WEIGHT;
+		 	error += Math.abs(determineSectionLength(base) - determineSectionLength(reprod));
+		 	//error += Math.abs(base.getWidth() - reprod.getWidth()) * DetectionEngine.SCALE_WEIGHT;
+		 	//error += Math.abs(base.getHeight() - reprod.getHeight()) * DetectionEngine.SCALE_WEIGHT;
 		 	
 		 	return error;
 		 }
@@ -438,7 +476,7 @@ package core
 				}
 				
 				if(point.getY() < minY) {
-					minX = point.getY()
+					minY = point.getY()
 				} else if(point.getY() > maxY) {
 					maxY = point.getY();
 				}

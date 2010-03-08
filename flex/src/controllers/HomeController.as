@@ -38,6 +38,8 @@ package controllers
 		// array of blobIds that are currently touching the surface
 		private var activeBlobIds:ArrayCollection = new ArrayCollection();
 		
+		private var currentGesture:Gesture = null;
+		
 		public function HomeController():void
 		{
 			this.view = new HomeView();
@@ -56,9 +58,6 @@ package controllers
 			this.view.cnvs_gesturePad.addEventListener(TouchEvent.MOUSE_DOWN, this.gesturePadTouchDown);
 			this.view.cnvs_gesturePad.addEventListener(TouchEvent.MOUSE_UP, this.gesturePadTouchOff);
 			this.view.cnvs_gesturePad.addEventListener(Event.ENTER_FRAME, this.gestureDetector);
-
-			// event listener for when they drag a finger off the gesture pad
-			this.view.addEventListener(TouchEvent.MOUSE_DOWN, this.gesturePadDragOut);	
 		}
 		
 		private function showMessageDialog(text:String):void
@@ -89,6 +88,7 @@ package controllers
 			saveButton.addEventListener(MouseEvent.CLICK, this.saveGesture);
 			saveButton.addEventListener(TouchEvent.CLICK, this.saveGesture);
 			
+			
 			vBox.addChild(label);
 			vBox.addChild(saveButton);
 			this.view.cnvs_message.addChild(vBox);
@@ -96,7 +96,9 @@ package controllers
 		
 		private function saveGesture(e:Event):void
 		{
-			Alert.show("saved");
+			this.currentGesture.storeInDB();
+			this.showMessageDialog("Gesture saved!");
+			
 		}
 		
 		private function startDetecting():void
@@ -116,6 +118,7 @@ package controllers
 			this.showMessageDialog("Analyzing gesture...");
 			
 			var detectedGesture:Gesture = new Gesture();
+			this.currentGesture = detectedGesture;
 			
 			for each(var path:Path in this.currDetection) {
 				detectedGesture.getPaths().addItem(path);
@@ -231,14 +234,6 @@ package controllers
 			if (this.activeBlobIds.length == 0) {
 				this.finishDetecting();
 			}
-		}
-		
-		// triggerred if they drag a finger off the gesture pad
-		private function gesturePadDragOut(e:TouchEvent):void
-		{
-			// end the gesture if they drag a finger off the pad.	
-			this.activeBlobIds.removeAll();
-			this.finishDetecting();	
 		}
 	}
 }
