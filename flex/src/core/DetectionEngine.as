@@ -14,7 +14,7 @@ package core
 		//values used for configuring comparison
 		public static const ERROR_THRESHOLD:int = 1000;
 		public static const SLOPE_WEIGHT:int = 50;
-		public static const SCALE_WEIGHT:int = 5;
+		public static const SCALE_WEIGHT:int = 1;
 		public static const SMALL_SECTION_SIZE:Number = 10; //the maximum size a section can be to be a candidate for being ignored
 		
 		
@@ -62,6 +62,9 @@ package core
 		 		for(var i:int = 0; i < numPaths; i++) {
 			 		gestureError += comparePaths(reprodPaths.getItemAt(i) as Path, gesture.getPaths().getItemAt(i) as Path);
 			 	}
+			 	
+			 	//look at average error overall paths, not total error
+			 	gestureError = gestureError / numPaths;
 			 	
 			 	if(gestureError < minError || closestGesture == null) {
 			 		minError = gestureError;
