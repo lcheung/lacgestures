@@ -15,7 +15,7 @@ package core
 		public static const ERROR_THRESHOLD:int = 1000;
 		public static const SLOPE_WEIGHT:int = 50;
 		public static const SCALE_WEIGHT:int = 1;
-		public static const SMALL_SECTION_SIZE:Number = 10; //the maximum size a section can be to be a candidate for being ignored
+		public static const SMALL_SECTION_SIZE:int = 10; //the maximum size a section can be to be a candidate for being ignored
 		
 		
 		/* Comparison
