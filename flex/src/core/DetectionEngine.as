@@ -11,12 +11,14 @@ package core
 	
 	public class DetectionEngine
 	{
+		public static const NUM_SLOPES_PER_SECTION:int = 5;
 		//values used for configuring comparison
 		public static const ERROR_THRESHOLD:int = 1000;
 		public static const SLOPE_WEIGHT:int = 50;
 		public static const SCALE_WEIGHT:int = 5;
 		public static const UNMATCHED_SCALE_WEIGHT:int = 25;
 		public static const WRONG_DIRECTION_PENALTY:int = 1500; //error to apply for conflicting section directions
+		public static const SLOPE_VARIATION_TOLERANCE:Number = 0.25; //on fringe cases between directions, the maximum (absolute ratio) slope difference allowed
 		public static const SMALL_SECTION_SIZE:int = 10; //the maximum size a section can be to be a candidate for being ignored
 		public static const MAX_DIVISION_FACTOR:Number = 3.0; //the maximum ratio that the path error can be scaled down by
 		public static const EXCESS_SECTION_INCREMENT:Number = 2.0; //for every excess section in a path comparison, how much do you progressively penalize by? 
@@ -265,19 +267,28 @@ package core
 		private static function determineLineProximity(first:Section, second:Section):int
 		{
 			//first, check for adjacency of sections
-			if(isLineAdjacent(first, second)) {
+			if(isSectionAdjacent(first, second)) {
 				//both lines
+				
+				//need to look at which sections are being compared
+				
+				//if slope1 is less than 1 compare to SLOPE_VARIATION_TOLERANCE
+				//if greater than 1, take reciprocal and then compare to SLOPE_VARIATION_TOLERANCE 
 			}
 						
 			return WRONG_DIRECTION_PENALTY;
 		}
 		
-		//check if the two lines are beside each other
-		private static function isLineAdjacent(first:Section, second:Section):Boolean
+		//check if the two sections are beside each other
+		private static function isSectionAdjacent(first:Section, second:Section):Boolean
 		{
 			switch(first.getDirection()) {
 				case Direction.UP_LEFT:
 				if(second.getDirection() == Direction.DOWN_RIGHT) return false;
+				
+				if(second.getDirection() == Direction.UP_RIGHT) {
+					
+				}
 				break;
 				
 				case Direction.UP_RIGHT:
@@ -295,6 +306,54 @@ package core
 			
 			return true;
 		}
+		
+		private static function checkSectionSlopesProximity(topOrLeft:Section, bottomOrRight:Section, isVertical:Boolean): Boolean
+		{
+			var topOrLeftSlopes:ArrayCollection = topOrLeft.getSlopes();
+			var bottomOrRightSlopes:ArrayCollection = bottomOrRight.getSlopes();
+			
+			if(isVertical) {
+				//one section is on top of the other
+				
+				//look if either have an absolute slope greater than 1
+				if(Math.abs(findAverageSectionSlope(topOrLeft)) >= 1 || Math.abs(findAverageSectionSlope(bottomOrRight)) >= 1) {
+					return false;
+				}
+				
+				
+			} else {
+				//sections are side by side
+				
+				//look if either have an absolute slope less than 1
+				if(Math.abs(findAverageSectionSlope(topOrLeft)) <= 1 || Math.abs(findAverageSectionSlope(bottomOrRight)) <= 1) {
+					return false;
+				}
+				
+				//find negative reciprocal so that small values can be compared
+				
+			}
+			
+			//make sure to look at absolute values
+			for(var i:int = 0; i < NUM_SLOPES_PER_SECTION; i++) {
+				var topOrLeftSlope:Number = topOrLeft.getSlopes().getItemAt(i) as Number;
+				var bottomOrRightSlope:Number = bottomOrRight.getSlopes().getItemAt(i) as Number;
+				
+				
+				
+			}
+			return true;
+		}
+		
+		private static function findAverageSectionSlope(section:Section):Number
+		{
+			var accumulator:Number = 0;
+			for each(var slope:Number in section.getSlopes()) {
+				accumulator += slope;
+			}
+			
+			return accumulator / NUM_SLOPES_PER_SECTION;
+		}
+		
 		/* Analysis Preparation
 		 * The functions related to determining path characteristics
 		 * in preparation for comparison 
@@ -569,12 +628,12 @@ package core
 					
 				}
 			*/
-			var sampleSize:int = numPoints/5 + 1;
+			var sampleSize:int = numPoints/NUM_SLOPES_PER_SECTION + 1;
 			if(sampleSize == 0) {
 				sampleSize = 1;
 			}
 			
-			for(var i:int = 0; i < 5; i++) {
+			for(var i:int = 0; i < NUM_SLOPES_PER_SECTION; i++) {
 				var firstIndex:int = i * (sampleSize-1);
 				var secondIndex:int = (i+1) * (sampleSize-1);
 				if(secondIndex > numPoints - 1) {
@@ -612,7 +671,7 @@ package core
 				
 				var slope:Number = rise / run;  
 				
-				if(slopes.length < 5) {
+				if(slopes.length < NUM_SLOPES_PER_SECTION) {
 					slopes.addItem(slope);
 				}
 			}  
