@@ -31,7 +31,9 @@ package controllers
 		// helper to draw the graphics onto the gesture pad
 		private var graphicsHelper:GraphicsHelper = null;
 		
-		private var isDetecting:Boolean;	
+		// possible values are 'idle', 'detecting', 'analyzing'
+		private var currentState:String;
+		
 		// map of blobId to array of paths
 		private var currDetection:Array;
 		// array of blobIds that are currently touching the surface
@@ -113,17 +115,18 @@ package controllers
 		
 		private function startDetecting():void
 		{
+			this.currentState = 'detecting';
+			
 			this.currDetection = new Array();
-			this.isDetecting = true;
-			
+		
 			this.graphicsHelper.clearCanvas();
-			
+		
 			this.showMessageDialog("Detecting gesture in progress...");
 		}
 			
 		private function finishDetecting():void
 		{
-			this.isDetecting = false;
+			this.currentState = 'analyzing';
 			
 			this.showMessageDialog("Analyzing gesture...");
 			
@@ -149,11 +152,13 @@ package controllers
 				// If no match was found, ask if they want to save the new one
 				this.showSaveDialog();
 			}	 
+			
+			this.currentState = 'idle';
 		}
 		
 		private function gestureDetector(e:Event):void
 		{		
-			if (this.isDetecting == true) {
+			if (this.currentState == 'detecting') {
 				for each(var blobId:Number in this.activeBlobIds) {
 					
 					// get the tuioObject for this blobId
@@ -207,7 +212,7 @@ package controllers
 			this.activeBlobIds.addItem(e.ID);
 						
 			// start detecting once a finger has been pressed down
-			if (this.isDetecting == false) {
+			if (this.currentState == 'idle') {
 				this.startDetecting();
 			}
 		}
@@ -222,7 +227,7 @@ package controllers
 				
 				// finish detecting when no more fingers are on
 				// the gesture pad
-				if (this.activeBlobIds.length == 0) {
+				if (this.currentState == 'detecting' && this.activeBlobIds.length == 0) {
 					this.finishDetecting();
 				}
 			}		
