@@ -59,19 +59,6 @@ package controllers
 			this.view.cnvs_gesturePad.addEventListener(Event.ENTER_FRAME, this.gestureDetector);
 		}
 		
-		// checks whether a given point is out of bounds
-		// i.e: whether the finger is off the gesture pad
-		// NOTE: point should be global coordinates
-		private function isPointOutOfBounds(point:Point):Boolean
-		{
-			var local:Point = this.view.cnvs_gesturePad.globalToLocal(point);
-			if (local.x < 0 || local.x > this.view.cnvs_gesturePad.width 
-					|| local.y < 0 || local.y > this.view.cnvs_gesturePad.height) {
-				return true;	
-			}	
-			return false;
-		}
-		
 		private function showMessageDialog(text:String):void
 		{
 			this.view.cnvs_message.removeAllChildren();
@@ -113,6 +100,17 @@ package controllers
 			
 		}
 		
+		// Checks whether a point is out of bounds (off the gesture pad)
+		private function isGestureBlobOutOfBounds(globalX:int, globalY:int):Boolean
+		{
+			var local:Point = this.view.cnvs_gesturePad.globalToLocal(new Point(globalX, globalY));
+			if (local.x < 0 || local.x > this.view.cnvs_gesturePad.width 
+					|| local.y < 0 || local.y > this.view.cnvs_gesturePad.height) {
+				return true;	
+			}	
+			return false;
+		}
+		
 		private function startDetecting():void
 		{
 			this.currDetection = new Array();
@@ -141,35 +139,12 @@ package controllers
 			
 			var matchedGesture:Gesture = DetectionEngine.matchGesture(detectedGesture);
 			
-			//var matchedGesture:Gesture = null;
-		
-			
 			if (matchedGesture != null) {
 				// match has been found
 				this.showMessageDialog("Gesture Found!");
 				
 				// draw the gesture
-				for each(var matchedPath:Path in matchedGesture.getPaths()) {
-					for (var i:int=0; i<matchedPath.getPoints().length; i++) {
-						
-						// first point, we simply draw a circle. After that
-						// we begin drawing a line
-						if (i==0) {
-							var point:Point = matchedPath.getPoints().getItemAt(i).toPoint();
-							point = this.graphicsHelper.globalToLocal(point);
-							this.graphicsHelper.drawCircle(point, 16, 0xFF0000);
-						} else {
-							var prevPoint:Point = matchedPath.getPoints().getItemAt(i-1).toPoint();
-							prevPoint = this.graphicsHelper.globalToLocal(prevPoint);
-							var currPoint:Point = matchedPath.getPoints().getItemAt(i).toPoint();
-							currPoint = this.graphicsHelper.globalToLocal(currPoint);
-							
-							this.graphicsHelper.drawLine(prevPoint, currPoint, 8, 0xFF0000, 1);	
-						} 
-					}
-				} 
-				
-				
+				this.graphicsHelper.drawGesture(matchedGesture);
 			} else {
 				// If no match was found, ask if they want to save the new one
 				this.showSaveDialog();
@@ -179,50 +154,46 @@ package controllers
 		private function gestureDetector(e:Event):void
 		{		
 			if (this.isDetecting == true) {
-				for(var i:Number=0; i<this.activeBlobIds.length; i++) {
-					var blobId:Number = Number(this.activeBlobIds.getItemAt(i));
+				for each(var blobId:Number in this.activeBlobIds) {
 					
 					// get the tuioObject for this blobId
 					var tuioObj:TUIOObject = TUIO.getObjectById(blobId);
 					
 					if (tuioObj != null) {
-						
-						// check if the gesture is out of bounds
-						if (this.isPointOutOfBounds(new Point(tuioObj.x,tuioObj.y)) == true) {
-							this.gesturePadOutOfBounds();
-							return;
-						}
-						
-						// if current blobId does not have a path instantiated
-						// in the current detection, make one.
-						if (this.currDetection[blobId] == null) {
-							this.currDetection[blobId] = new Path();
-						}
-						
-						//create the touchpoint object
-						var touchPoint:TouchPoint = new TouchPoint();
-						touchPoint.setX(tuioObj.x);
-						touchPoint.setY(tuioObj.y);
-						touchPoint.setTimestamp(new Date().time);
-										
-						this.currDetection[blobId].getPoints().addItem(touchPoint);
-						
-						// Update the graphics on the gesture pad
-						if (this.currDetection[blobId].getPoints().length > 1) {
+						// make sure the gesture is not out of bounds
+						if (this.isGestureBlobOutOfBounds(tuioObj.x, tuioObj.y) == true) {
+							// gesture has gone out of bounds, handle it
+							this.gestureOutOfBounds();								
+						} else {
+							// if current blobId does not have a path instantiated
+							// in the current detection, make one.
+							if (this.currDetection[blobId] == null) {
+								this.currDetection[blobId] = new Path();
+							}
 							
-							// get the previous touch point
-							var prevTouchPoint:TouchPoint = this.currDetection[blobId].getPoints().getItemAt(
-								this.currDetection[blobId].getPoints().length-2
-							);
+							//create the touchpoint object
+							var touchPoint:TouchPoint = new TouchPoint();
+							touchPoint.setX(tuioObj.x);
+							touchPoint.setY(tuioObj.y);
+							touchPoint.setTimestamp(new Date().time);
+											
+							this.currDetection[blobId].getPoints().addItem(touchPoint);
 							
-							// create the start and end points, convert the global coordinates to local
-							var start:Point = prevTouchPoint.toPoint();
-							start = this.graphicsHelper.globalToLocal(start);
-							var end:Point = touchPoint.toPoint();
-							end = this.graphicsHelper.globalToLocal(end);
-							
-							this.graphicsHelper.drawLine(start, end, 8, 0xffffff);		
-		
+							// Update the graphics on the gesture pad
+							if (this.currDetection[blobId].getPoints().length > 1) {
+								// get the previous touch point
+								var prevTouchPoint:TouchPoint = this.currDetection[blobId].getPoints().getItemAt(
+									this.currDetection[blobId].getPoints().length-2
+								);
+								
+								// create the start and end points, convert the global coordinates to local
+								var start:Point = prevTouchPoint.toPoint();
+								start = this.graphicsHelper.globalToLocal(start);
+								var end:Point = touchPoint.toPoint();
+								end = this.graphicsHelper.globalToLocal(end);
+								
+								this.graphicsHelper.drawLine(start, end, 8, 0xffffff);		
+							}
 						}
 					}
 				}
@@ -257,10 +228,10 @@ package controllers
 			}		
 		}
 		
-		private function gesturePadOutOfBounds():void
+		private function gestureOutOfBounds():void
 		{
+			// when a finger has gone out of bounds, we end the detection.
 			this.activeBlobIds.removeAll();
-			
 			this.finishDetecting();
 		}
 	}
