@@ -3,6 +3,9 @@ package tools
 	import flash.display.Sprite;
 	import flash.geom.Point;
 	
+	import models.Gesture;
+	import models.Path;
+	
 	import mx.containers.Canvas;
 	import mx.core.UIComponent;
 	
@@ -39,6 +42,30 @@ package tools
 			line.graphics.lineTo(endPoint.x, endPoint.y);
 			
 			this.addSpriteToCanvas(line);
+		}
+		
+		public function drawGesture(gesture:Gesture):void
+		{
+				// draw the gesture
+				for each(var path:Path in gesture.getPaths()) {
+					for (var i:int=0; i<path.getPoints().length; i++) {
+						
+						// first point, we simply draw a circle. After that
+						// we begin drawing a line
+						if (i==0) {
+							var point:Point = path.getPoints().getItemAt(i).toPoint();
+							point = this.globalToLocal(point);
+							this.drawCircle(point, 16, 0xFF0000);
+						} else {
+							var prevPoint:Point = path.getPoints().getItemAt(i-1).toPoint();
+							prevPoint = this.globalToLocal(prevPoint);
+							var currPoint:Point = path.getPoints().getItemAt(i).toPoint();
+							currPoint = this.globalToLocal(currPoint);
+							
+							this.drawLine(prevPoint, currPoint, 8, 0xFF0000, 1);	
+						} 
+					}
+				} 
 		}
 		
 		public function globalToLocal(point:Point):Point
