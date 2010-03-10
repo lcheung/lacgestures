@@ -19,6 +19,7 @@ package core
 		public static const WRONG_DIRECTION_PENALTY:int = 1500; //error to apply for conflicting section directions
 		public static const SMALL_SECTION_SIZE:int = 10; //the maximum size a section can be to be a candidate for being ignored
 		public static const MAX_DIVISION_FACTOR:Number = 3.0; //the maximum ratio that the path error can be scaled down by
+		public static const EXCESS_SECTION_INCREMENT:Number = 2.0; //for every excess section in a path comparison, how much do you progressively penalize by? 
 		
 		/* Comparison
 		 * The functions related to comparing a reproduced gesture
@@ -140,29 +141,31 @@ package core
 			 	}
 		 	}
 		 	
+		 	var numExcess:int = 1; //the number of extra sections, used to penalize excess sections progressively more heavily 
+		 	 
 		 	//check if the surplus sections are significant in size, penalize accordingly
 		 	for(var i:int = reprodIndex; i < numReprodSections; i++) {
-		 		error += assessSectionSignificance(reprodSections.getItemAt(i) as Section);
+		 		error += assessSectionSignificance(reprodSections.getItemAt(i) as Section) * (numExcess * EXCESS_SECTION_INCREMENT);
+		 		numExcess++;
 		 	}
 		 	
 		 	for(var j:int = baseIndex; j < numBaseSections; j++) {
-		 		error += assessSectionSignificance(baseSections.getItemAt(j) as Section);
+		 		error += assessSectionSignificance(baseSections.getItemAt(j) as Section) * (numExcess * EXCESS_SECTION_INCREMENT);
+		 		numExcess++;
 		 	}
-		 	
-		 	
 		 		
-		 	return normalizePathError(error, reprod);
+		 	return normalizePathError(error, reprod, base);
 		 } 
 		 
 		 //adjust the path error based on the path characteristics
 		 //to reduce error compounding on large paths
-		 private static function normalizePathError(error:int, path:Path): int
+		 private static function normalizePathError(error:int, reprodPath:Path, basePath:Path): int
 		 {
 		 	
 		 	//TODO: should also be impacted by overall path size in some way
 		 	
 		 	//look at the number of sections
-		 	var divisionFactor:Number = path.getSections().length; //how much to cut the error down by
+		 	var divisionFactor:Number = Math.min(reprodPath.getSections().length, basePath.getSections().length); //how much to cut the error down by
 		 	
 		 	if(divisionFactor > MAX_DIVISION_FACTOR) {
 		 		divisionFactor = MAX_DIVISION_FACTOR;
@@ -231,7 +234,7 @@ package core
 		 	 if(reprod.getDirection() != base.getDirection()) {
 		 	 	
 		 	 	//TODO: can't simply rule it out... need to check for adjacency and slope
-		 	 	error += WRONG_DIRECTION_PENALTY;
+		 	 	error += determineLineProximity(reprod, base);
 		 	 }
 		 	
 		 	//compare slopes at each defined interval 
@@ -257,6 +260,41 @@ package core
 		 	return error;
 		 }
 		
+		//if section directions are different, see if they're at least close
+		//to protect against close cases in vertical/horizontal
+		private static function determineLineProximity(first:Section, second:Section):int
+		{
+			//first, check for adjacency of sections
+			if(isLineAdjacent(first, second)) {
+				//both lines
+			}
+						
+			return WRONG_DIRECTION_PENALTY;
+		}
+		
+		//check if the two lines are beside each other
+		private static function isLineAdjacent(first:Section, second:Section):Boolean
+		{
+			switch(first.getDirection()) {
+				case Direction.UP_LEFT:
+				if(second.getDirection() == Direction.DOWN_RIGHT) return false;
+				break;
+				
+				case Direction.UP_RIGHT:
+				if(second.getDirection() == Direction.DOWN_LEFT) return false;
+				break;
+				
+				case Direction.DOWN_LEFT:
+				if(second.getDirection() == Direction.UP_RIGHT) return false;
+				break;
+				
+				case Direction.DOWN_RIGHT:
+				if(second.getDirection() == Direction.UP_LEFT) return false;
+				break;
+			}
+			
+			return true;
+		}
 		/* Analysis Preparation
 		 * The functions related to determining path characteristics
 		 * in preparation for comparison 
