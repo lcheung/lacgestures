@@ -38,7 +38,7 @@ package tools
 			var line:Sprite = new Sprite();
 			
 			line.graphics.lineStyle(thickness,color,alpha);
-			line.graphics.moveTo(startPoint.x, endPoint.y);
+			line.graphics.moveTo(startPoint.x, startPoint.y);
 			line.graphics.lineTo(endPoint.x, endPoint.y);
 			
 			this.addSpriteToCanvas(line);
