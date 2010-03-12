@@ -32,9 +32,9 @@ package controllers
 		private var graphicsHelper:GraphicsHelper = null;
 		
 		// possible values are 'idle', 'detecting', 'analyzing'
-		private const var IDLE_STATE:int = 0;
-		private const var DETECTING_STATE:int = 1;
-		private const var ANALYZING_STATE:int = 2;
+		private const IDLE_STATE:int = 0;
+		private const DETECTING_STATE:int = 1;
+		private const ANALYZING_STATE:int = 2;
 		private var currentState:int;
 		
 		// map of blobId to array of paths
