@@ -234,8 +234,6 @@ package core
 		 	 trace("b dir: " + base.getDirection());
 		 	 	
 		 	 if(reprod.getDirection() != base.getDirection()) {
-		 	 	
-		 	 	//TODO: can't simply rule it out... need to check for adjacency and slope
 		 	 	error += determineLineProximity(reprod, base);
 		 	 }
 		 	
@@ -243,21 +241,29 @@ package core
 		 	var baseSlopes:ArrayCollection = base.getSlopes();
 		 	var reprodSlopes:ArrayCollection = reprod.getSlopes();
 		 	
-		 	for(var i:int = 0; i < baseSlopes.length; i++ ) {
+		 	for(var i:int = 0; i < NUM_SLOPES_PER_SECTION; i++ ) {
 		 		trace("slope " + i);
 		 		trace("reprod= " + (reprodSlopes.getItemAt(i) as Number));
 		 		trace("base= " + (baseSlopes.getItemAt(i) as Number));
-		 		error += Math.abs((baseSlopes.getItemIndex(i) as Number) - (reprodSlopes.getItemAt(i) as Number)) * DetectionEngine.SLOPE_WEIGHT;
+		 		
+		 		var baseSlope:Number = baseSlopes.getItemIndex(i) as Number;
+		 		var reprodSlope:Number = reprodSlopes.getItemAt(i) as Number;
+		 		
+		 		if(Math.abs(baseSlope) > 1.0 && Math.abs(reprodSlope) > 1.0) {
+		 			baseSlope = negativeReciprocal(baseSlope);
+		 			reprodSlope = negativeReciprocal(reprodSlope);
+		 		}
+		 		
+		 		error += Math.abs(Math.abs(baseSlope) - Math.abs(reprodSlope)) * SLOPE_WEIGHT;
 		 	}
 		 	
 		 	trace("reprod= w:" + reprod.getWidth() + ", h:" + reprod.getHeight());
 		 	trace("base= w:" + base.getWidth() + ", h:" + base.getHeight());
-		 	//e.g. section width divided by total gesture width  
-		 	error += Math.abs(determineSectionLength(base) - determineSectionLength(reprod));
-		 	//error += Math.abs(base.getWidth() - reprod.getWidth()) * DetectionEngine.SCALE_WEIGHT;
-		 	//error += Math.abs(base.getHeight() - reprod.getHeight()) * DetectionEngine.SCALE_WEIGHT;
 		 	
-		 	trace("section error: " + error);
+		 	//compare (approximate) lengths of the section
+		 	error += Math.abs(determineSectionLength(base) - determineSectionLength(reprod)) * SCALE_WEIGHT;
+		 	
+			trace("section error: " + error);
 		 	
 		 	return error;
 		 }
@@ -266,15 +272,9 @@ package core
 		//to protect against close cases in vertical/horizontal
 		private static function determineLineProximity(first:Section, second:Section):int
 		{
-			//first, check for adjacency of sections
-			if(isSectionAdjacent(first, second)) {
-				//both lines
-				
-				//need to look at which sections are being compared
-				
-				//if slope1 is less than 1 compare to SLOPE_VARIATION_TOLERANCE
-				//if greater than 1, take reciprocal and then compare to SLOPE_VARIATION_TOLERANCE 
-			}
+			//check for adjacency of sections
+			//if adjacent, don't worry about adding error, will be done when comparing slopes
+			if(isSectionAdjacent(first, second)) return 0;
 						
 			return WRONG_DIRECTION_PENALTY;
 		}
@@ -285,22 +285,30 @@ package core
 			switch(first.getDirection()) {
 				case Direction.UP_LEFT:
 				if(second.getDirection() == Direction.DOWN_RIGHT) return false;
+				if(second.getDirection() == Direction.UP_RIGHT) return checkSectionSlopesProximity(first, second, false);
+				if(second.getDirection() == Direction.DOWN_LEFT) return checkSectionSlopesProximity(first, second, true);
 				
-				if(second.getDirection() == Direction.UP_RIGHT) {
-					
-				}
 				break;
 				
 				case Direction.UP_RIGHT:
 				if(second.getDirection() == Direction.DOWN_LEFT) return false;
+				if(second.getDirection() == Direction.UP_LEFT) return checkSectionSlopesProximity(second, first, false);
+				if(second.getDirection() == Direction.DOWN_RIGHT) return checkSectionSlopesProximity(first, second, true);
+				
 				break;
 				
 				case Direction.DOWN_LEFT:
 				if(second.getDirection() == Direction.UP_RIGHT) return false;
+				if(second.getDirection() == Direction.UP_LEFT) return checkSectionSlopesProximity(second, first, true);
+				if(second.getDirection() == Direction.DOWN_RIGHT) return checkSectionSlopesProximity(first, second, false);
+				
 				break;
 				
 				case Direction.DOWN_RIGHT:
 				if(second.getDirection() == Direction.UP_LEFT) return false;
+				if(second.getDirection() == Direction.UP_RIGHT) return checkSectionSlopesProximity(second, first, true);
+				if(second.getDirection() == Direction.DOWN_LEFT) return checkSectionSlopesProximity(second, first, false);
+				
 				break;
 			}
 			
@@ -311,6 +319,9 @@ package core
 		{
 			var topOrLeftSlopes:ArrayCollection = topOrLeft.getSlopes();
 			var bottomOrRightSlopes:ArrayCollection = bottomOrRight.getSlopes();
+			
+			var topOrLeftSlopesClone:Array = topOrLeftSlopes.toArray();
+			var bottomOrRightSlopesClone:Array = bottomOrRightSlopes.toArray();
 			
 			if(isVertical) {
 				//one section is on top of the other
@@ -330,18 +341,27 @@ package core
 				}
 				
 				//find negative reciprocal so that small values can be compared
+				for(var j:int = 0; j < NUM_SLOPES_PER_SECTION; j++) {
+					topOrLeftSlopesClone[j] = negativeReciprocal(topOrLeftSlopesClone[j]);
+					bottomOrRightSlopesClone[j] = negativeReciprocal(bottomOrRightSlopesClone[j]);  
+				}
 				
 			}
 			
 			//make sure to look at absolute values
 			for(var i:int = 0; i < NUM_SLOPES_PER_SECTION; i++) {
-				var topOrLeftSlope:Number = topOrLeft.getSlopes().getItemAt(i) as Number;
-				var bottomOrRightSlope:Number = bottomOrRight.getSlopes().getItemAt(i) as Number;
 				
-				
+				if(Math.abs(Math.abs(topOrLeftSlopesClone[i]) - Math.abs(bottomOrRightSlopesClone[i])) > SLOPE_VARIATION_TOLERANCE) {
+					return false;
+				}  
 				
 			}
 			return true;
+		}
+		
+		private static function negativeReciprocal(slope:Number):Number
+		{
+			return -1 / slope;
 		}
 		
 		private static function findAverageSectionSlope(section:Section):Number
@@ -376,7 +396,7 @@ package core
 		
 		//Perform analysis on path
 		//i.e. parse into section, determine direction, slope, etc.
-		public static function preparePath(path:Path):void
+		private static function preparePath(path:Path):void
 		{
 			smoothPath(path);
 			parsePath(path);
@@ -476,7 +496,14 @@ package core
 				/* now compare it to the direction of this section
 				 * if it varies, start new section 
 				 */
+				
+				
+				//TODO: be more forgiving on section splitting
+				//check the difference in slopes first
+				//or wait for a few more points to see where it's going				
+				
 				if(currentDirection != previousDirection) {
+					
 					var section:Section = new Section();
 					
 					section.setStartIndex(sectionStartIndex);
