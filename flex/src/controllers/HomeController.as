@@ -32,7 +32,7 @@ package controllers
 		private var graphicsHelper:GraphicsHelper = null;
 		
 		// possible values are 'idle', 'detecting', 'analyzing'
-		private var currentState:String;
+		private var currentState:String = 'idle';
 		
 		// map of blobId to array of paths
 		private var currDetection:Array;
