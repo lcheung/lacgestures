@@ -413,7 +413,9 @@ package core
 		//i.e. parse into section, determine direction, slope, etc.
 		private static function preparePath(path:Path):void
 		{
+			trace("before smoothing: # points: " + path.getPoints().length);
 			smoothPath(path);
+			trace("after smoothing: # points: " + path.getPoints().length);
 			parsePath(path);
 			determinePathSize(path);
 			
@@ -429,7 +431,9 @@ package core
 		private static function smoothPath(path:Path):void
 		{
 			var points:ArrayCollection = path.getPoints();
+			/*
 			var recentValidPoint:TouchPoint = points.getItemAt(0) as TouchPoint;
+			
 			var index:int = 0;
 			for each(var point:TouchPoint in points) {
 				if(index != 0) {
@@ -439,6 +443,18 @@ package core
 				}
 				
 				index++;
+			}*/
+			var recentValidPoint:TouchPoint = points.getItemAt(points.length - 1) as TouchPoint;
+			for(var i:int = points.length - 1; i >= 0; i--) {
+				var point:TouchPoint = path.getPoints().getItemAt(i) as TouchPoint;
+				if(i != points.length - 1) {
+					if(point.getX() == recentValidPoint.getX() && point.getY() == recentValidPoint.getY()) {
+						points.removeItemAt(i);
+					} else {
+						recentValidPoint = point;
+					}
+				}
+				
 			}
 		}
 
