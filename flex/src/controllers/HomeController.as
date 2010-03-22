@@ -32,7 +32,14 @@ package controllers
 		private var graphicsHelper:GraphicsHelper = null;
 		
 		// possible values are 'idle', 'detecting', 'analyzing'
-		private var currentState:String = 'idle';
+
+		//private var currentState:String = 'idle';
+
+		private const IDLE_STATE:int = 0;
+		private const DETECTING_STATE:int = 1;
+		private const ANALYZING_STATE:int = 2;
+		private var currentState:int;
+
 		
 		// map of blobId to array of paths
 		private var currDetection:Array;
@@ -45,6 +52,8 @@ package controllers
 		{
 			this.view = new HomeView();
 			UIHelper.pushView(this.view);
+			
+			this.currentState = this.IDLE_STATE;
 			
 			this.graphicsHelper = new GraphicsHelper(this.view.cnvs_gesturePad);
 			
@@ -115,7 +124,7 @@ package controllers
 		
 		private function startDetecting():void
 		{
-			this.currentState = 'detecting';
+			this.currentState = this.DETECTING_STATE;
 			
 			this.currDetection = new Array();
 		
@@ -126,7 +135,7 @@ package controllers
 			
 		private function finishDetecting():void
 		{
-			this.currentState = 'analyzing';
+			this.currentState = this.ANALYZING_STATE;
 			
 			this.showMessageDialog("Analyzing gesture...");
 			
@@ -153,12 +162,12 @@ package controllers
 				this.showSaveDialog();
 			}	 
 			
-			this.currentState = 'idle';
+			this.currentState = this.IDLE_STATE;
 		}
 		
 		private function gestureDetector(e:Event):void
 		{		
-			if (this.currentState == 'detecting') {
+			if (this.currentState == this.DETECTING_STATE) {
 				for each(var blobId:Number in this.activeBlobIds) {
 					
 					// get the tuioObject for this blobId
@@ -212,7 +221,7 @@ package controllers
 			this.activeBlobIds.addItem(e.ID);
 						
 			// start detecting once a finger has been pressed down
-			if (this.currentState == 'idle') {
+			if (this.currentState == this.IDLE_STATE) {
 				this.startDetecting();
 			}
 		}
@@ -227,7 +236,7 @@ package controllers
 				
 				// finish detecting when no more fingers are on
 				// the gesture pad
-				if (this.currentState == 'detecting' && this.activeBlobIds.length == 0) {
+				if (this.currentState == this.DETECTING_STATE && this.activeBlobIds.length == 0) {
 					this.finishDetecting();
 				}
 			}		
