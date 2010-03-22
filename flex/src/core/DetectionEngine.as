@@ -13,7 +13,7 @@ package core
 	{
 		public static const NUM_SLOPES_PER_SECTION:int = 5;
 		//values used for configuring comparison
-		public static const ERROR_THRESHOLD:int = 1000;
+		public static const ERROR_THRESHOLD:int = 1200;
 		public static const SLOPE_WEIGHT:int = 50;
 		public static const SCALE_WEIGHT:int = 5;
 		public static const UNMATCHED_SCALE_WEIGHT:int = 25;
@@ -22,6 +22,7 @@ package core
 		public static const SMALL_SECTION_SIZE:int = 10; //the maximum size a section can be to be a candidate for being ignored
 		public static const MAX_DIVISION_FACTOR:Number = 3.0; //the maximum ratio that the path error can be scaled down by
 		public static const EXCESS_SECTION_INCREMENT:Number = 2.0; //for every excess section in a path comparison, how much do you progressively penalize by? 
+		public static const MULTI_FINGER_ERROR_TOLERANCE:Number = 1.25; //allow more error per path for multi touch gestures
 		
 		/* Comparison
 		 * The functions related to comparing a reproduced gesture
@@ -36,13 +37,25 @@ package core
 		 	//get list of existing gestures
 		 	var storedGestures:ArrayCollection = Gesture.getGesturesFromDB();
 		 	
+		 	var numPaths:int = reprod.getPaths().length;			
+		 				
+		 	for(var j:int = storedGestures.length - 1; j >= 0; j--) {
+				var baseGesture:Gesture = storedGestures.getItemAt(j) as Gesture;
+			 	if(baseGesture.getPaths().length != numPaths) {
+			 		storedGestures.removeItemAt(j);	
+			 	}
+		 	}
+		 	
+		 	//process the 
+		 	storedGestures = correlatePaths(reprod, storedGestures);
+		 	var reprodPaths:ArrayCollection = reprod.getPaths();
+		 	
 		 	//TODO: This is just temporary until all the proper info is stored in DB
 		 	for each(var g:Gesture in storedGestures) {
 		 		prepareGesture(g);
 		 	}
 		 	
-		 	var reprodPaths:ArrayCollection = reprod.getPaths();
-		 	var numPaths:int = reprodPaths.length;
+
 		 	
 		 	//prepare each path in the reproduced gesture by removing unnecessary points and parsing into sections
 		 	prepareGesture(reprod);
@@ -61,12 +74,7 @@ package core
 		 	}
 		 	*/
 		 	
-			for(var j:int = storedGestures.length - 1; j >= 0; j--) {
-				var baseGesture:Gesture = storedGestures.getItemAt(j) as Gesture;
-			 	if(baseGesture.getPaths().length != numPaths) {
-			 		storedGestures.removeItemAt(j);	
-			 	}
-		 	}
+
 		 	
 		 				 	
 		 	//create a 1-to-1 mapping of the base and reproduced gesture paths
@@ -77,6 +85,8 @@ package core
 		 		
 		 		trace("=== GESTURE ===");
 		 		trace("===============");
+		 		var numPathsInRepr:int = reprodPaths.length;
+		 		var numPathsInCurrGest:int = gesture.getPaths().length;
 		 		
 		 		//TODO: In the future, match the paths to be compared based on outcome from correlatePaths()
 		 		for(var i:int = 0; i < numPaths; i++) {
@@ -97,7 +107,12 @@ package core
 		 	}
 		 	
 		 	//is the most similar gesture close enough to the reproduced?
-		 	if(minError < DetectionEngine.ERROR_THRESHOLD) {
+		 	var errorThreshold:int = ERROR_THRESHOLD;
+		 	if(numPaths > 1) {
+		 		errorThreshold *= MULTI_FINGER_ERROR_TOLERANCE * (numPaths - 1);
+		 	} 
+		 	
+		 	if(minError < errorThreshold) {
 		 		return closestGesture;
 		 	}
 		 	
@@ -706,56 +721,270 @@ package core
 			section.setSlopes(slopes);
 		}
 		
-		//Pair up the paths on the reproduced gesture with those of the base gestures
-		private static function correlatePaths(reprod:Gesture, baseCollection:ArrayCollection):void
+		private static function reorderPathsLeftToRight(pathSets:ArrayCollection):ArrayCollection
 		{
-			//TODO: Don't just take any path at random to set as origin, use left-most (for example), instead
-			
-			/* pick the starting coordinates of any path and use the relative X/Y variation
-			 * of the start coords of the other paths to match
-			 */
-			 
-			
-			//first find the relative positions for the reproduced gesture
-			var reprodPaths:ArrayCollection = reprod.getPaths();
-			
-			//stores the list of relative X/Y distances from origin point
-			var reprodX:Array = new Array();
-			var reprodY:Array = new Array();
-			
-			var reprodOriginX:int = (reprodPaths as Path).getPoints().getItemAt(0).getX();
-			var reprodOriginY:int = (reprodPaths as Path).getPoints().getItemAt(0).getY();
-			
-			for each(var path:Path in reprodPaths) {
-				reprodX.push(path.getPoints().getItemAt(0).getX() - reprodOriginX);
-				reprodY.push(path.getPoints().getItemAt(0).getY() - reprodOriginY);
-			}
-			
-			//now do this for all the base gestures
-			for each(var gesture:Gesture in baseCollection) {
-				/*
-				var paths:ArrayCollection = gesture.getPaths();
+			var reorderedPathSets:ArrayCollection = new ArrayCollection();
+			var leftMostPoint:int;
+			var leftMostIndex:int;
+			var numPaths: int = pathSets.length;
+			for(var i:int=0; i<numPaths; i++)
+			{
+				var thePath:Path = pathSets.getItemAt(0) as Path;
+				var thePoint: TouchPoint = thePath.getPoints().getItemAt(0) as TouchPoint;
+				leftMostPoint = thePoint.getX();
+				leftMostIndex = 0;
 				
-				//stores the list of relative X/Y distances from origin point
-				var baseX:Array = new Array();
-				var baseY:Array = new Array();
-				
-				var baseOriginX:int = paths.getPoints().getItemAt(0).getX();
-				var baseOriginY:int = paths.getPoints().getItemAt(0).getY();
-				
-				for each(var path:Path in paths) {
-					baseX.push(path.getPoints().getItemAt(0).getX() - baseOriginX);
-					baseY.push(path.getPoints().getItemAt(0).getY() - baseOriginY);
-				}
-				*/
-				//TODO: compare the relative distances between reproduced and base paths
-				
+				var indexCounter: int = 0;
+				for each(var path:Path in pathSets )
+				{
 					
+					var firstPoint:TouchPoint = path.getPoints().getItemAt(0) as TouchPoint;				
+					if(firstPoint.getX() < leftMostPoint)
+					{
+						leftMostPoint = firstPoint.getX();
+						leftMostIndex = indexCounter;
+					}
+					indexCounter = indexCounter + 1;
+					
+				}
+				indexCounter = 0;
+				reorderedPathSets.addItem(pathSets.getItemAt(leftMostIndex));
+				pathSets.removeItemAt(leftMostIndex);
 			}
-			
-			
+			return reorderedPathSets;
 			
 		}
+		
+		//Pair up the paths on the reproduced gesture with those of the base gestures
+		private static function correlatePaths(reprod:Gesture, baseCollection:ArrayCollection):ArrayCollection
+		{
+			//return an array collection of Gestures from baseCollection, but reorder the paths internally
+			var possibleGestures:ArrayCollection = new ArrayCollection();
+			var numPaths:int = reprod.getPaths().length;
+			
+			var pathSets:ArrayCollection = reorderPathsLeftToRight(reprod.getPaths());
+			reprod.setPaths(pathSets);
+			numPaths = reprod.getPaths().length;
+			//reprod.getPaths(); //							
+/*
+			var intialPath:Path = pathSets.getItemAt(0) as Path;
+			var intialPoint:TouchPoint = intialPath.getPoints().getItemAt(0) as TouchPoint;
+			
+	
+			// pick the starting coordinates of any path and use the relative X/Y variation
+			// of the start coords of the other paths to match 
+			var reprodOriginX:int = intialPoint.getX();
+			var reprodOriginY:int = intialPoint.getY();		
+			
+			//stores the list of relative X/Y distances from origin point
+			var reprodXDist:ArrayCollection = new ArrayCollection();
+			var reprodYDist:ArrayCollection = new ArrayCollection();
+			
+
+			//push the absolulte relative distances of each start point in an array for later comparison
+			for each(var path:Path in pathSets) 
+			{
+				reprodXDist.addItem(  Math.abs(  path.getPoints().getItemAt(0).getX() - reprodOriginX) );
+				reprodYDist.addItem(  Math.abs( path.getPoints().getItemAt(0).getY() - reprodOriginY) );
+			}
+			
+			//Now calculate the diagonal distances and push them onto an arrayCollection
+			var diagonalDistReprod:ArrayCollection = new ArrayCollection();
+			for(var i:int =0; i<reprodXDist.length; i++)
+			{
+				diagonalDistReprod.addItem(Math.sqrt(  (reprodXDist[i] * reprodXDist[i]) + (reprodYDist[i] * reprodYDist[i]) ) );
+			}
+			
+			
+			//now do this for all the base gestures, and comparing to the Reprod Gesture
+			for each(var gesture:Gesture in baseCollection)
+			{	
+				var basePathSets:ArrayCollection = gesture.getPaths();//reorderPathsLeftToRight(gesture.getPaths());							
+				intialPath = pathSets.getItemAt(0) as Path;
+				intialPoint = intialPath.getPoints().getItemAt(0) as TouchPoint;
+				
+				
+				var baseCollectionOriginX:int = intialPoint.getX();
+				var baseCollectionOriginY:int = intialPoint.getY();
+				
+				//stores the list of relative X/Y distances from origin point
+				var baseCollectionXDist:ArrayCollection = new ArrayCollection();
+				var baseCollectionYDist:ArrayCollection = new ArrayCollection();
+				
+				//push the absolulte relative distances of each start point in an array for later comparison
+				for each(var thePath:Path in gesture.getPaths()) 
+				{
+					baseCollectionXDist.addItem( Math.abs( thePath.getPoints().getItemAt(0).getX() - baseCollectionOriginX) );
+					baseCollectionYDist.addItem( Math.abs( thePath.getPoints().getItemAt(0).getY() - baseCollectionOriginY) );
+				}
+				
+				//Now calculate the diagonal distances and push them onto an arrayCollection
+				var diagonalDistBase:ArrayCollection = new ArrayCollection();
+				for(var q:int=0; q<reprodXDist.length; q++)
+				{
+					diagonalDistBase.addItem(Math.sqrt(  (baseCollectionXDist[q] * baseCollectionXDist[q]) + (baseCollectionYDist[q] * baseCollectionYDist[q]) ) );
+				}
+				
+				
+				// compare the relative distances between reproduced and base paths
+				var probableMatch:int = 0;
+				var probability:int = 0;
+
+				
+				//make an array to store the matched indexes of paths
+				var possibleMatchedPaths:ArrayCollection = new ArrayCollection();
+				var definiteMatchedPaths:ArrayCollection = new ArrayCollection();
+				
+				
+				//for each path in the reproduced Gesture
+				for(var r:int=0; r<diagonalDistReprod.length; r++)
+				{	
+					var closestValue:int=0;
+					var indexOfClosestValue:int=0;
+					
+					//find the closest path match in the reproduced gesture
+					for(var j:int=0; j<diagonalDistBase.length; j++)
+					{											
+						var difference:Number = Math.abs(  Number(diagonalDistBase.getItemAt(j)) - Number(diagonalDistReprod.getItemAt(j)) );
+						
+						if (j==0)	//closest needs to be initialized just the first time
+						{
+							closestValue=difference;
+						}
+						
+						//TUNE THIS VALUE, if the relative distance is say 5 units away
+						if(  difference < DISTANCETUNABLE)
+						{
+							probableMatch++;	//increment the counter to show that this is close
+							//store the index for later, in case there are more than 1 close match
+							possibleMatchedPaths.addItem(j);					
+						}
+						else
+						{					
+							if( closestValue > difference) 
+							{
+								closestValue = difference;
+								indexOfClosestValue = j;
+							} 
+						}
+					}
+					
+					if(probableMatch > 1)	//more than 1 probable match
+					{
+						probableMatch=0; //reset the flag for next path
+
+						//Now its time to look at slopes, and find the matches
+						
+						var dxGold:Number;
+						var dyGold:Number;
+						var slopeGold:Number;
+						
+						var dx:int;
+						var dy:int;
+						var slope:Number;
+						
+						//cycle through all the possible matches
+						var tempPoint:TouchPoint;	
+						var tempIndex:int;
+						var tempPath:Path;
+						tempIndex = int(possibleMatchedPaths.getItemAt(r))
+						tempPath = pathSets.getItemAt(tempIndex) as Path;
+						tempPoint = tempPath.getPoints().getItemAt(0) as TouchPoint;
+						
+						dxGold =  reprodOriginX - tempPoint.getX();
+						
+						dyGold =  reprodOriginY - tempPoint.getY();
+						slopeGold = dyGold/dxGold;
+						
+						var closestSlope:Number; 
+						var indexOfClosestSlope:Number;
+						//cycle through all the possible matches
+						for (var k:int=0; k<possibleMatchedPaths.length; k++)
+						{
+
+							tempIndex = Number (possibleMatchedPaths.getItemAt(k));
+							tempPath = basePathSets.getItemAt(tempIndex) as Path;
+							tempPoint = tempPath.getPoints().getItemAt(0) as TouchPoint;	
+							dx = baseCollectionOriginX - tempPoint.getX();
+							dy = baseCollectionOriginY - tempPoint.getY();
+							
+							slope = dy/dx;
+							
+							var slopeDiff:Number = Math.abs(slopeGold-slope);
+							
+							if(k==0)
+							{
+								closestSlope=slopeDiff;
+							}
+							else
+							{
+								if(slopeDiff<closestSlope)
+								{
+									closestSlope=slopeDiff;
+									indexOfClosestSlope=k;
+								}
+							}		
+						}
+						definiteMatchedPaths.addItem(possibleMatchedPaths.getItemAt(indexOfClosestSlope));
+						diagonalDistBase.removeItemAt( int( possibleMatchedPaths.getItemAt(indexOfClosestSlope)) );
+						
+					}
+					else if (probableMatch == 1) //Exactly 1 probable match, best case!!!
+					{
+						probableMatch=0; //reset the flag for next path
+						diagonalDistBase.removeItemAt( int(possibleMatchedPaths.getItemAt(i)) ); //remove the items so that they don't conflict with others
+						definiteMatchedPaths.addItem(possibleMatchedPaths.getItemAt(i));
+						probability++;
+					}					
+					else
+					{
+						//no match found...uh oh... might as well choose the closest.
+						probableMatch=0; //reset the flag for next path
+						diagonalDistBase.removeItemAt(indexOfClosestValue); //remove the items so that they don't conflict with others
+						definiteMatchedPaths.addItem(indexOfClosestValue);
+					}
+				}
+				
+				//TUNE THIS VALUE, if matches for more than say 75% of the paths
+				if(probability > (baseCollectionXDist.length * PROBABILITYTUNABLE) )
+				{
+					//Likely its a match, keep it for return
+					
+					
+					//reorder the paths in the gesture
+					var rearrangedPaths:ArrayCollection = new ArrayCollection();
+					//use the matchedPathes array items
+					for(var s:int=0; s< reprodXDist.length; s++)
+					{
+						var theSinglePath:Path = gesture.getPaths().getItemAt( int(definiteMatchedPaths.getItemAt(s)) ) as Path;
+						rearrangedPaths.addItem( theSinglePath );	
+					}
+					gesture.setPaths( rearrangedPaths);
+					
+					//add the gesture to the arraycollection for return
+					possibleGestures.addItem(gesture);
+				}
+				else
+				{
+					//Not a match... don't keep it for return
+				}
+				
+			}
+*/			
+			for each(var gesture:Gesture in baseCollection)
+			{	
+				
+				var rearrangedPaths:ArrayCollection = reorderPathsLeftToRight(gesture.getPaths());							
+				//var numPaths:int = rearrangedPaths.length;
+				gesture.setPaths( rearrangedPaths);
+				possibleGestures.addItem(gesture);
+			}	
+			return possibleGestures;	
+		}
+			
+			
+			
+		
 		 
 
 	}
